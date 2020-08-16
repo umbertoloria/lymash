@@ -6,41 +6,11 @@ from jaccard import jaccard
 from sliding_windows import ksliding
 
 
-def not_estimation(a, b, kmer_size):
-	a_kmers = ksliding(a, kmer_size)
-	b_kmers = ksliding(b, kmer_size)
-
-	j = jaccard(set(a_kmers), set(b_kmers))
-
-	# print("KMER SIZE:", kmer_size)
-	# print("JACCARD SIMILARITY: %10.9f" % j)
-	# print()
-
-	return j
-
-
-def estimation(a, b, truncate, slide_length):
-	a_factors_lengths = tuple(get_fingers_after_text_subdividing("cfl", a, truncate))
-	b_factors_lengths = tuple(get_fingers_after_text_subdividing("cfl", b, truncate))
-
-	a_fingerprint = ksliding(a_factors_lengths, slide_length)
-	b_fingerprint = ksliding(b_factors_lengths, slide_length)
-
-	j = jaccard(set(a_fingerprint), set(b_fingerprint))
-
-	# print("TRUNCATE:", truncate)
-	# print("SLIDE LENGTH:", slide_length)
-	# print("JACCARD SIMILARITY OF FINGERPRINTS: %10.9f", j)
-	# print()
-
-	return j
-
-
 def from_fq_to_multiple_fastas(fq_filepath):
 	reads = get_reads_from_fq_file(fq_filepath)
-
 	i = 1
 	for title, read in reads:
+		print("creating file " + str(i))
 		f = open("in/" + str(i) + ".fasta", "w")
 		i += 1
 		parts = subdivide(read, 70)
@@ -52,7 +22,17 @@ def from_fq_to_multiple_fastas(fq_filepath):
 		f.close()
 
 
-def main():
+def not_estimation(a, b, kmer_size):
+	a_kmers = ksliding(a, kmer_size)
+	b_kmers = ksliding(b, kmer_size)
+	j = jaccard(set(a_kmers), set(b_kmers))
+	# print("KMER SIZE:", kmer_size)
+	# print("JACCARD SIMILARITY: %10.9f" % j)
+	# print()
+	return j
+
+
+def main_calculate_jaccard():
 	computation = {
 		"pairs": (
 			("in/1.fasta", "in/2.fasta"),
@@ -94,25 +74,45 @@ def main():
 		print()
 		print()
 
-	'''
-	j = not_estimation(s, t, 21)
-	
-	# truncate = int(argv[1])
-	# slide_length = int(argv[2])
+
+def main_estimate_jaccard(file1, file2):
+	def estimation(a, b, subdivision, slide_length):
+		factorization_method = "cfl"
+		print("1 read: " + factorization_method + " + fingerprint")
+		a_factors_lengths = get_fingers_after_text_subdividing(factorization_method, a, subdivision)
+		a_fingerprint = set(ksliding(a_factors_lengths, slide_length))
+		print("2 read: " + factorization_method + " + fingerprint")
+		b_factors_lengths = get_fingers_after_text_subdividing(factorization_method, b, subdivision)
+		b_fingerprint = set(ksliding(b_factors_lengths, slide_length))
+		print("Calculating Jaccard similarity from fingerprints")
+		j = jaccard(a_fingerprint, b_fingerprint)
+		# print("TRUNCATE:", truncate)
+		# print("SLIDE LENGTH:", slide_length)
+		# print("JACCARD SIMILARITY OF FINGERPRINTS: %10.9f", j)
+		# print()
+		return j
+
+	title1, read1 = read_from_fasta(file1)
+	title2, read2 = read_from_fasta(file2)
+
+	print("Comparing:", file1, "with", file2)
+	print(file1, "'s title:", title1)
+	print(file2, "'s title:", title2)
+	print()
+
+	j = not_estimation(read1, read2, 21)
 
 	configs = []
 	for truncate in range(10, 301, 10):
 		for slide_length in range(2, 15):
-			configs.append(
-				(truncate, slide_length)
-			)
+			configs.append((truncate, slide_length))
 
+	# Starting from subdivision=10, it is going to make way too much external terminal calls.
+	# TODO: Internalize the Lyndon factorizer.
 	closest = 1
-
 	values = {}
-
 	for truncate, slide_length in configs:
-		est = estimation(s, t, truncate, slide_length)
+		est = estimation(read1, read2, truncate, slide_length)
 		values[(truncate, slide_length)] = est
 		diff = abs(est - j)
 		if closest > diff:
@@ -120,8 +120,24 @@ def main():
 			print("( %3d - %2d ) %10.9f   (%5.4f)" % (truncate, slide_length, est, diff))
 		else:
 			print("( %3d - %2d ) %10.9f" % (truncate, slide_length, est))
-	'''
 
 
 if __name__ == "__main__":
-	main()
+	print("1: Export FASTA from FQ")
+	print("2: Calculate Jaccard similarity")
+	print("3: Estimate Jaccard similarity")
+	print("4: Quit")
+	print()
+	action = int(input("Tell me what to do > "))
+
+	if action == 1:
+		filepath = input("Tell me the filepath of the FQ file to \"explode\" > ")
+		from_fq_to_multiple_fastas(filepath)
+	elif action == 2:
+		main_calculate_jaccard()
+	elif action == 3:
+		file1 = input("Tell me the first FASTA filepath to compare> ")
+		file2 = input("Tell me the second FASTA filepath to compare> ")
+		main_estimate_jaccard(file1, file2)
+	else:
+		print("Goodbye...️")
