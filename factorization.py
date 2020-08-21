@@ -1,13 +1,24 @@
 import subprocess
-
+from lyndon.factorization import cfl, icfl, cfl_icfl, d_cfl, d_icfl, d_cfl_icfl
 
 def get_factors(alg, text):
-	cmd = ["../lyndon/python/external_interface.py", alg, text]
-	result = subprocess.run(cmd, stdout=subprocess.PIPE)
-	out = result.stdout.decode("utf-8")
-	if out.endswith('\n'):
-		out = out[:-1]
-	return tuple(out.split(" "))
+	#cmd = ["../lyndon-master/python/external_interface.py", alg, text]
+	#result = subprocess.run(cmd, stdout=subprocess.PIPE)
+	algs = {
+		'cfl': cfl,
+		'icfl': icfl,
+		'cfl_icfl': cfl_icfl,
+		'cfl_comb': d_cfl,
+		'icfl_comb': d_icfl,
+		'cfl_icfl_comb': d_cfl_icfl
+	}
+
+	fun = algs[alg]
+	return tuple(fun(text))
+	#out = result.stdout.decode("utf-8")
+	#if out.endswith('\n'):
+	#	out = out[:-1]
+	#return tuple(out.split(" "))
 
 
 def subdivide(text, max_length):

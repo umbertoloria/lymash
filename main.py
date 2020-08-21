@@ -75,9 +75,8 @@ def main_calculate_jaccard():
 		print()
 
 
-def main_estimate_jaccard(file1, file2):
+def main_estimate_jaccard(file1, file2,factorization_method):
 	def estimation(a, b, subdivision, slide_length):
-		factorization_method = "cfl"
 		print("1 read: " + factorization_method + " + fingerprint")
 		a_factors_lengths = get_fingers_after_text_subdividing(factorization_method, a, subdivision)
 		a_fingerprint = set(ksliding(a_factors_lengths, slide_length))
@@ -86,10 +85,10 @@ def main_estimate_jaccard(file1, file2):
 		b_fingerprint = set(ksliding(b_factors_lengths, slide_length))
 		print("Calculating Jaccard similarity from fingerprints")
 		j = jaccard(a_fingerprint, b_fingerprint)
-		# print("TRUNCATE:", truncate)
-		# print("SLIDE LENGTH:", slide_length)
-		# print("JACCARD SIMILARITY OF FINGERPRINTS: %10.9f", j)
-		# print()
+		print("SUBDIVISION:", subdivision)
+		print("SLIDE LENGTH:", slide_length)
+		print("JACCARD SIMILARITY OF FINGERPRINTS: %10.9f", j)
+		print()
 		return j
 
 	title1, read1 = read_from_fasta(file1)
@@ -138,6 +137,8 @@ if __name__ == "__main__":
 	elif action == 3:
 		file1 = input("Tell me the first FASTA filepath to compare> ")
 		file2 = input("Tell me the second FASTA filepath to compare> ")
-		main_estimate_jaccard(file1, file2)
+		algo = input("Tell me the algorithm for factoring> \n(cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)")
+
+		main_estimate_jaccard(file1, file2,algo)
 	else:
 		print("Goodbye...️")
