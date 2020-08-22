@@ -4,6 +4,7 @@ from factorization import get_fingers_after_text_subdividing, subdivide
 from format import get_reads_from_fq_file, read_from_fasta
 from jaccard import jaccard
 from sliding_windows import ksliding
+from preprocess import preprocess
 
 
 def from_fq_to_multiple_fastas(fq_filepath):
@@ -75,7 +76,7 @@ def main_calculate_jaccard():
 		print()
 
 
-def main_estimate_jaccard(file1, file2,factorization_method):
+def main_estimate_jaccard(file1, file2, factorization_method):
 	def estimation(a, b, subdivision, slide_length):
 		print("1 read: " + factorization_method + " + fingerprint")
 		a_factors_lengths = get_fingers_after_text_subdividing(factorization_method, a, subdivision)
@@ -125,7 +126,8 @@ if __name__ == "__main__":
 	print("1: Export FASTA from FQ")
 	print("2: Calculate Jaccard similarity")
 	print("3: Estimate Jaccard similarity")
-	print("4: Quit")
+	print("4: Preprocess all the files in a directory")
+	print("5: Quit")
 	print()
 	action = int(input("Tell me what to do > "))
 
@@ -137,8 +139,12 @@ if __name__ == "__main__":
 	elif action == 3:
 		file1 = input("Tell me the first FASTA filepath to compare> ")
 		file2 = input("Tell me the second FASTA filepath to compare> ")
-		algo = input("Tell me the algorithm for factoring> \n(cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)")
-
-		main_estimate_jaccard(file1, file2,algo)
+		algo = input("Tell me the algorithm for factoring\n (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
+		main_estimate_jaccard(file1, file2, algo)
+	elif action == 4:
+		dir = input("Tell me the directory with the file to preprocess>")
+		algo = input("Tell me the algorithm for factoring\n (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
+		subdivision = input("Tell me the subdivision lenght (max 200 for ASCII sake)")
+		preprocess(dir, algo, int(subdivision))
 	else:
 		print("Goodbye...️")
