@@ -3,10 +3,9 @@ from jaccard import jaccard
 from sliding_windows import ksliding
 
 
-def main():
-	file1 = "test/1.fasta.translated"
-	file2 = "test/2.fasta.translated"
-
+def explore_kmer_size():
+	file1 = input("Tell me the first file> ")
+	file2 = input("Tell me the second file> ")
 	title1, read1 = read_from_fasta(file1)
 	title2, read2 = read_from_fasta(file2)
 	print("Comparing:", file1, "with", file2)
@@ -34,3 +33,19 @@ def main():
 
 	print()
 	print()
+
+
+def fixed_kmer_size():
+	file1 = input("Tell me the first file> ")
+	file2 = input("Tell me the second file> ")
+	kmer_size = int(input("Tell me the kmer size (usually 21)> "))
+	title1, read1 = read_from_fasta(file1)
+	title2, read2 = read_from_fasta(file2)
+	print("Comparing:", file1, "with", file2)
+	print(file1, "'s title:", title1)
+	print(file2, "'s title:", title2)
+	print("kmer size:", kmer_size)
+	print()
+
+	p = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	print("Similarity: %10.9f" % p)
