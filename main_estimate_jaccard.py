@@ -1,124 +1,163 @@
+from collections import defaultdict
+
+from Sequence import Sequence
 from factorization import get_fingers_after_split
-from format import read_from_fasta
 from jaccard import jaccard
 from sliding_windows import ksliding
 
+FACTORIZATIONS = ["cfl", "icfl", "cfl_icfl", "cfl_comb", "icfl_comb", "cfl_icfl_comb"]
 
-def estimate_jaccard_from_filepaths(file1, file2, max_distance_to_show, coppie_famose, *output_functions):
-	def estimation(factorization_method, a, b, split, window_size):
-		a_factors_lengths = get_fingers_after_split(factorization_method, a, split)
-		a_fingerprint = set(ksliding(a_factors_lengths, window_size))
-		b_factors_lengths = get_fingers_after_split(factorization_method, b, split)
-		b_fingerprint = set(ksliding(b_factors_lengths, window_size))
-		return jaccard(a_fingerprint, b_fingerprint)
 
-	title1, read1 = read_from_fasta(file1)
-	title2, read2 = read_from_fasta(file2)
+class JaccardFactResult:
 
-	# print("Comparing:", file1, "with", file2)
-	# print(file1, "'s title:", title1)
-	# print(file2, "'s title:", title2)
-	# print()
+	def __init__(self):
+		self.__calculations = {}
+		self.__estimations = defaultdict(dict)
 
-	jaccard_calculated = jaccard(set(ksliding(read1, 21)), set(ksliding(read2, 21)))
+	def get_sequence1(self) -> Sequence:
+		return self.__seq1
 
-	configs = []
-	for split in range(50, 301, 25):  # 50-300
-		for window_size in range(3, 9):  # 3-8
-			configs.append((split, window_size))
+	def set_sequence1(self, seq: Sequence):
+		self.__seq1: Sequence = seq
 
-	data = {
-		"file1": file1.split("/")[-1],
-		"file2": file2.split("/")[-1],
-		"calculation": {
-			"kmer size": 21,
-			"result": jaccard_calculated
-		},
-		"estimations": {
-			"cfl": [],
-			"icfl": [],
-			"cfl_icfl": [],
-			"cfl_comb": [],
-			"icfl_comb": [],
-			"cfl_icfl_comb": []
+	def get_sequence2(self) -> Sequence:
+		return self.__seq2
+
+	def set_sequence2(self, seq: Sequence):
+		self.__seq2: Sequence = seq
+
+	def add_calculated_jaccard(self, kmer_size: int, jacc: float):
+		self.__calculations[kmer_size] = jacc
+
+	def get_calculated_jaccard(self, kmer_size: int) -> float:
+		return self.__calculations[kmer_size]
+
+	def add_estimated_jaccard(self, factorization: str, split: int, window_size: int, jacc: float, accuracy: float):
+		self.__estimations[factorization][(split, window_size)] = {
+			"estimation": jacc,
+			"accuracy": accuracy
 		}
+
+	def get_factorizations_used(self):
+		return self.__estimations.keys()
+
+	def get_estimated_jaccard_from_factorization(self, factorization: str):
+		return self.__estimations[factorization]
+
+
+def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int, tolerance: float, *out_funcs):
+	read1 = seq1.get_data()
+	read2 = seq2.get_data()
+
+	data = JaccardFactResult()
+	data.set_sequence1(seq1)
+	data.set_sequence2(seq2)
+
+	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	data.add_calculated_jaccard(kmer_size, jaccard_calculated)
+
+	result = {
+		"jaccard": jaccard_calculated,
+		"factorizations": {}
 	}
 
-	for factorization_method in data["estimations"].keys():
-		for split, window_size in configs:
-			jaccard_estimated = estimation(factorization_method, read1, read2, split, window_size)
-			diff = jaccard_calculated - jaccard_estimated
+	for factorization in FACTORIZATIONS:
+		sopravvissuti = []
 
-			if abs(diff) <= max_distance_to_show:
-				coppie_famose[(split, window_size, factorization_method)] += 1
-				data["estimations"][factorization_method].append({
-					"split": split,
-					"window size": window_size,
-					"estimation": jaccard_estimated,
-					"accuracy": diff
-				})
+		for split in range(50, 301, 25):  # 50-300
 
-	for output_function in output_functions:
-		output_function(data)
+			a_factors_lengths = get_fingers_after_split(factorization, read1, split)
+			b_factors_lengths = get_fingers_after_split(factorization, read2, split)
+
+			for window_size in range(3, 9):  # 3-8
+
+				a_fingerprint = set(ksliding(a_factors_lengths, window_size))
+				b_fingerprint = set(ksliding(b_factors_lengths, window_size))
+				jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
+
+				diff = jaccard_calculated - jaccard_estimated
+				if abs(diff) <= tolerance:
+					sopravvissuti.append((split, window_size))
+					data.add_estimated_jaccard(factorization, split, window_size, jaccard_estimated, diff)
+
+		result["factorizations"][factorization] = sopravvissuti
+
+	for out_func in out_funcs:
+		out_func(data)
+
+	return result
 
 
-def export_stdout(data):
-	print("Deterministicly calculated (kmer size %3d): %10.9f" % (
-		data["calculation"]["kmer size"], data["calculation"]["result"]))
+'''
+FIXME
+def export_stdout(data: JaccardFactResult):
+	kmer_size = 21
+
+	print("Deterministicly calculated (kmer size %3d): %10.9f" % (kmer_size, data.get_calculated_jaccard(kmer_size)))
 	closest = 1
-	for d in data["estimations"]["cfl"]:
+	for d in data.get_estimated_jaccard_from_factorization("cfl"):
 		diff = d['accuracy']
 		if abs(closest) > abs(diff):
 			closest = abs(diff)
 			print("( %3d - %2d ) %10.9f   (%5.4f) ***" % (d['split'], d['window size'], d['estimation'], d['accuracy']))
 		else:
 			print("( %3d - %2d ) %10.9f   (%5.4f)" % (d['split'], d['window size'], d['estimation'], d['accuracy']))
+'''
 
 
-def export_csv(data):
-	fixed = "___ split,___ window size,___ estimate,___ accuracy,"
-	algs = data["estimations"].keys()
-	with open(data["file1"] + '-' + data["file2"] + '.csv', mode='w') as file:
-		file.write("kmer size,result,")
-		for alg in algs:
-			file.write(fixed.replace("___", alg))
-		file.write("\n")
+def get_csv_exporter(dirname):
+	def export_csv(data: JaccardFactResult):
+		fixed = "___ split,___ window size,___ estimate,___ accuracy,"
 
-		i = {}
-		for alg in algs:
-			i[alg] = 1
-		lens = {}
-		for alg in algs:
-			lens[alg] = len(data["estimations"][alg])
+		csvname = data.get_sequence1().get_name() + "-" + data.get_sequence2().get_name() + ".csv"
 
-		file.write(str(data["calculation"]["kmer size"]) + "," + str(data["calculation"]["result"]) + ",")
-		for alg in algs:
-			if lens[alg] > 0:
-				file.write(str(data["estimations"][alg][0]["split"]) + ",")
-				file.write(str(data["estimations"][alg][0]["window size"]) + ",")
-				file.write(str(data["estimations"][alg][0]["estimation"]) + ",")
-				file.write(str(data["estimations"][alg][0]["accuracy"]) + ",")
-			else:
-				file.write(",,,,")
-		file.write("\n")
+		kmer_size = 21
 
-		while True:
-			stop = True
-			for alg in algs:
-				if i[alg] < lens[alg]:
-					stop = False
-					break
-			if stop:
-				break
-			file.write(",,")
-			for alg in algs:
-				if i[alg] < lens[alg]:
-					file.write(str(data["estimations"][alg][i[alg]]["split"]) + ",")
-					file.write(str(data["estimations"][alg][i[alg]]["window size"]) + ",")
-					file.write(str(data["estimations"][alg][i[alg]]["estimation"]) + ",")
-					file.write(str(data["estimations"][alg][i[alg]]["accuracy"]) + ",")
+		estimations = {}
+		for factorization in FACTORIZATIONS:
+			estimations[factorization] = []
+			ests = data.get_estimated_jaccard_from_factorization(factorization)
+			for (split, window_size), value in ests.items():
+				estimations[factorization].append(
+					[str(split), str(window_size), str(value["estimation"]), str(value["accuracy"])])
+
+		with open(dirname + "/" + csvname, 'w') as csv:
+			csv.write("kmer size,result,")
+			for factorization in FACTORIZATIONS:
+				csv.write(fixed.replace("___", factorization))
+			csv.write("\n")
+
+			i = {}
+			for factorization in FACTORIZATIONS:
+				i[factorization] = 1
+			lens = {}
+			for factorization in FACTORIZATIONS:
+				lens[factorization] = len(estimations[factorization])
+
+			csv.write(str(kmer_size) + "," + str(data.get_calculated_jaccard(kmer_size)) + ",")
+			for factorization in FACTORIZATIONS:
+				if lens[factorization] > 0:
+					csv.write(",".join(estimations[factorization][0]) + ",")
 				else:
-					file.write(",,,,")
-			file.write("\n")
-			for alg in algs:
-				i[alg] += 1
+					csv.write(",,,,")
+			csv.write("\n")
+
+			while True:
+				stop = True
+				for factorization in FACTORIZATIONS:
+					if i[factorization] < lens[factorization]:
+						stop = False
+						break
+				if stop:
+					break
+				csv.write(",,")
+				for factorization in FACTORIZATIONS:
+					if i[factorization] < lens[factorization]:
+						csv.write(",".join(estimations[factorization][i[factorization]]) + ",")
+					else:
+						csv.write(",,,,")
+				csv.write("\n")
+				for factorization in FACTORIZATIONS:
+					i[factorization] += 1
+
+	return export_csv

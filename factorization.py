@@ -1,8 +1,6 @@
-from lyndon.factorization import cfl, icfl, cfl_icfl, d_cfl, d_icfl, d_cfl_icfl
-
-
-def get_factors(alg, text):
-	algs = {
+def get_factors(factorization, text):
+	from lyndon.factorization import cfl, icfl, cfl_icfl, d_cfl, d_icfl, d_cfl_icfl
+	factorizations = {
 		'cfl': cfl,
 		'icfl': icfl,
 		'cfl_icfl': cfl_icfl,
@@ -11,8 +9,8 @@ def get_factors(alg, text):
 		'cfl_icfl_comb': d_cfl_icfl
 	}
 
-	fun = algs[alg]
-	return tuple(fun(text))
+	func = factorizations[factorization]
+	return tuple(func(text))
 
 
 def subdivide(text, cut_length):

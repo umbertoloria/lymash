@@ -19,7 +19,7 @@ def read_from_fasta(filepath):
 	line = f.readline()
 	if line.endswith('\n'):
 		line = line[:-1]
-	title = line
+	title = line[1:]
 	read = ""
 	while line:
 		line = f.readline()
