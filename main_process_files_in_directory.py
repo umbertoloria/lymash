@@ -6,7 +6,7 @@ from format import read_from_fasta
 
 def main():
 	dir = input("Tell me the directory with the file to preprocess> ")
-	factorization_method = input(
+	factorization = input(
 		"Tell me the algorithm for factoring\n   (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
 	subdivision = int(input("Tell me the subdivision lenght (max 200 for ASCII sake)> "))
 
@@ -16,7 +16,7 @@ def main():
 		for filepath in filepaths:
 			if filepath.endswith(".fasta"):
 				title, read = read_from_fasta(dir + "/" + filepath)
-				fingers = get_fingers_after_split(factorization_method, read, subdivision)
+				fingers = get_fingers_after_split(factorization, read, subdivision)
 				file = open(os.path.join(dir + "_preprocessed", "preprocessed_" + filepath), "w")
 				file.write(title + " preprocessed encoding lyndon fact lengths with ascii code\n")
 				for fingers_row in subdivide(fingers, 70):

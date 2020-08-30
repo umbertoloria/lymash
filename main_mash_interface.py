@@ -5,13 +5,13 @@ from format import read_from_fasta
 def main():
 	file1 = input("Tell me the first FASTA filepath to compare> ")
 	file2 = input("Tell me the second FASTA filepath to compare> ")
-	factorization_method = input(
+	factorization = input(
 		"Tell me the algorithm for factoring\n (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
 	subdivision = int(input("Tell me the subdivision lenght (max 200 for ASCII sake)> "))
 
 	def get_codified_factors(a, b, split):
-		a_factors_lengths = get_fingers_after_split(factorization_method, a, split)
-		b_factors_lengths = get_fingers_after_split(factorization_method, b, split)
+		a_factors_lengths = get_fingers_after_split(factorization, a, split)
+		b_factors_lengths = get_fingers_after_split(factorization, b, split)
 		alf = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		lengths = list(set(a_factors_lengths).union(set(b_factors_lengths)))
 		lengths.sort()
