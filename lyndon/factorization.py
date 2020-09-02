@@ -146,7 +146,7 @@ def cfl_icfl(data, cfl_max=10, sep=False):
     return result
 
 
-def cfl_icfl_(w, cfl_max=30, sep=False):
+def cfl_icfl_(w, cfl_max=10, sep=False):
     result = []
     cfl_fact = cfl(w)
     for factor in cfl_fact:

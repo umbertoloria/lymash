@@ -64,13 +64,16 @@ def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int
 	for factorization in FACTORIZATIONS:
 		sopravvissuti = []
 
-		for split in range(50, 301, 25):  # 50-300
+		for split in range(300, 301, 25):  # 50-300
 
 			a_factors_lengths = get_fingers_after_split(factorization, read1, split)
 			b_factors_lengths = get_fingers_after_split(factorization, read2, split)
+			print("fattori stringa 1 con  {} {} : {} ".format(factorization,split ,a_factors_lengths))
+			print("fattori stringa 2 con {} {} : {} ".format(factorization,split ,b_factors_lengths))
 
 			for window_size in range(3, 9):  # 3-8
-
+				if window_size>len(a_factors_lengths) or window_size>len(b_factors_lengths):
+					continue
 				a_fingerprint = set(ksliding(a_factors_lengths, window_size))
 				b_fingerprint = set(ksliding(b_factors_lengths, window_size))
 				jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
@@ -86,6 +89,38 @@ def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int
 		out_func(data)
 
 	return result
+
+
+def estimate_jaccard_difference(seq1: Sequence, seq2: Sequence, kmer_size: int, factorization, kfinger_size: int):
+	from factorization import get_factors
+
+	read1 = seq1.get_data()
+	read2 = seq2.get_data()
+	print("lunghezze")
+	print(len(read1))
+	print(read1)
+	print(get_factors(factorization, read1))
+	print("----------------------------------------------------------------")
+	print(get_factors(factorization, read2))
+	print(read2)
+	print(len(read2))
+
+	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+
+	a_factors_lengths = tuple([len(f) for f in get_factors(factorization, read1)])
+	b_factors_lengths = tuple([len(f) for f in get_factors(factorization, read2)])
+
+	print(a_factors_lengths)
+	print(b_factors_lengths)
+
+	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size))
+	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size))
+
+	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
+
+	return jaccard_calculated, jaccard_estimated
+
+
 
 
 '''

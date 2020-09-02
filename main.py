@@ -12,6 +12,7 @@ if __name__ == "__main__":
 	print("4: Estimate Jaccard similarity (estimate on pairs of some files)")
 	print("5: Preprocess all the files in a directory")
 	print("6: Encode in ASCII the fingers of two FASTA files")
+	print("7: WE")
 	print("_: Quit")
 	action = int(input("\nTell me what to do > "))
 	if action == 1:
@@ -106,5 +107,52 @@ if __name__ == "__main__":
 		main_process_files_in_directory.main()
 	elif action == 6:
 		main_mash_interface.main()
+	elif action == 7:
+		from main_estimate_jaccard import jaccard_thanks_factorizations, get_csv_exporter
+		import os
+		from collections import defaultdict
+		from itertools import combinations
+		from Sequence import FastaSequence
+
+		from main_estimate_jaccard import estimate_jaccard_difference
+
+		# CLI inputs
+		print("Tell me files to compare ")
+		files = []
+		path = input("> ")
+		while path != "":
+			if not os.path.exists(path):
+				print("File o directory non esistente")
+			elif os.path.isdir(path):
+				new_files = os.listdir(path)
+				new_files.sort()
+				for new_file in new_files:
+					new_file = path + "/" + new_file
+					if new_file not in files:
+						files.append(new_file)
+			else:
+				if path not in files:
+					files.append(path)
+			path = input("> ")
+
+		kmer_size = input("Tell me the kmer size (21) > ")
+		kmer_size = 21 if kmer_size == "" else int(kmer_size)
+		print()
+		factorization = input("Tell me the factorization (cfl_icfl_comb)")
+		if factorization == "":
+			factorization = "cfl_icfl_comb"
+		kfinger_size = input("tell me the kfinger sizes(3)")
+		kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
+
+		for i in range(len(files)-1):
+			file1=files[i]
+			file2=files[i+1]
+			print("Comparing", file1, "-", file2)
+			seq1 = FastaSequence(file1)
+			seq2 = FastaSequence(file2)
+			calc, estim = estimate_jaccard_difference(seq1, seq2, kmer_size, factorization, kfinger_size)
+			print(calc, estim)
+
+
 	else:
 		print("Goodbye...️")
