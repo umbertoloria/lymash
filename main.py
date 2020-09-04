@@ -12,7 +12,9 @@ if __name__ == "__main__":
 	print("4: Estimate Jaccard similarity (estimate on pairs of some files)")
 	print("5: Preprocess all the files in a directory")
 	print("6: Encode in ASCII the fingers of two FASTA files")
-	print("7: WE")
+	print("7: WE (pure a me plz)")
+	print("8: Antonio dammi un nome...")
+	print("9: Crea dataset di long long reads")
 	print("_: Quit")
 	action = int(input("\nTell me what to do > "))
 	if action == 1:
@@ -114,6 +116,7 @@ if __name__ == "__main__":
 		from itertools import combinations
 		from Sequence import FastaSequence
 		import matplotlib.pyplot as plt
+
 		ascisse = []
 		ascisse2 = []
 		ascisse3 = []
@@ -151,34 +154,33 @@ if __name__ == "__main__":
 		kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
 		max = 0
 		import copy
+
 		for i in range(len(files)):
-			file=files[i]
+			file = files[i]
 			seq1 = FastaSequence(file)
 			read1 = seq1.get_data()
 			from factorization import get_factors
 			from lyndon.utils import _complement
 
-			factors =[len(f) for f in get_factors(factorization, read1)]
-			factors2 =[len(f) for f in get_factors(factorization, _complement(read1))]
+			factors = [len(f) for f in get_factors(factorization, read1)]
+			factors2 = [len(f) for f in get_factors(factorization, _complement(read1))]
 			factors.sort()
 			factors2.sort()
 			print(factors[-1])
 			print("max = {}".format(max))
-			if factors[-1]> max:
-				max =copy.deepcopy(factors[-1])
-			if factors[-1]> max:
-				max =copy.deepcopy(factors2[-1])
-
+			if factors[-1] > max:
+				max = copy.deepcopy(factors[-1])
+			if factors[-1] > max:
+				max = copy.deepcopy(factors2[-1])
 
 		print("il max è {}".format(max))
-		y=0
+		y = 0
 
-		files= sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
+		files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
 
-		for i in range(len(files)-1):
-			file1=files[i]
-			file2=files[i+1]
-
+		for i in range(len(files) - 1):
+			file1 = files[i]
+			file2 = files[i + 1]
 
 			print("Comparing", file1, "-", file2)
 			seq1 = FastaSequence(file1)
@@ -189,29 +191,30 @@ if __name__ == "__main__":
 
 			import subprocess
 
-
-			out=subprocess.Popen(["mash","dist",file1,file2,"-s","1000"],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-			stdout,stderr= out.communicate()
+			out = subprocess.Popen(["mash", "dist", file1, file2, "-s", "1000"], stdout=subprocess.PIPE,
+			                       stderr=subprocess.STDOUT)
+			stdout, stderr = out.communicate()
 			output = str(stdout).split('t')[-1].split('\\')[0]
-			output=output.split("/")
-			mashresult1 = int(output[0])/int(output[1])
+			output = output.split("/")
+			mashresult1 = int(output[0]) / int(output[1])
 
 			file1pre = file1.replace("/", "_preprocessed/preprocessed_")
 			file2pre = file2.replace("/", "_preprocessed/preprocessed_")
 
-
-			out = subprocess.Popen(["mash", "dist", file1pre, file2pre,"-s","1000", "-k", "3", "-z"  ,"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			out = subprocess.Popen(["mash", "dist", file1pre, file2pre, "-s", "1000", "-k", "3", "-z",
+			                        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
+			                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			stdout, stderr = out.communicate()
 			output = str(stdout).split('t')[-1].split('\\')[0]
 			output = output.split("/")
 			mashresult2 = int(output[0]) / int(output[1])
 
-			#ordinate2.append(abs(mashresult1-mashresult2))
-			#ascisse2.append(mashresult1)
+			# ordinate2.append(abs(mashresult1-mashresult2))
+			# ascisse2.append(mashresult1)
 			ordinate2.append(mashresult1)
 			ascisse2.append(calc)
 
-			ordinate3.append(mashresult2 )
+			ordinate3.append(mashresult2)
 			ascisse3.append(calc)
 
 			ordinate.append(estim)
@@ -219,24 +222,21 @@ if __name__ == "__main__":
 
 			print("---------------------------------")
 			print()
-			if abs(calc - estim) >0.25:
-				y+=1
+			if abs(calc - estim) > 0.25:
+				y += 1
 
-		#plt.plot(ascisse,	ordinate)
+		# plt.plot(ascisse,	ordinate)
 		plt.plot(ascisse2, ordinate2, "b.")
-		plt.plot(ascisse,	ordinate, "r+")
+		plt.plot(ascisse, ordinate, "r+")
 
 		plt.plot(ascisse3, ordinate3, "y*")
-		plt.axis([0,1,0,1])
+		plt.axis([0, 1, 0, 1])
 		plt.xlabel("Similarità stringhe")
 		plt.ylabel("Accuracy^-1")
-		plt.legend(["Mash k-mer","Jaccard k-finger","Mash k-finger"])
+		plt.legend(["Mash k-mer", "Jaccard k-finger", "Mash k-finger"])
 		plt.title("CIAO")
 		plt.grid()
 		plt.show()
-
-
-
 
 		print(y)
 
@@ -248,6 +248,7 @@ if __name__ == "__main__":
 		from itertools import combinations
 		from Sequence import FastaSequence
 		import matplotlib.pyplot as plt
+
 		ascisse = []
 		ascisse2 = []
 		ascisse3 = []
@@ -285,14 +286,14 @@ if __name__ == "__main__":
 		kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
 		max = 0
 		import copy
-		y=0
 
-		files= sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
+		y = 0
 
-		for i in range(len(files)-1):
-			file1=files[i]
-			file2=files[i+1]
+		files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
 
+		for i in range(len(files) - 1):
+			file1 = files[i]
+			file2 = files[i + 1]
 
 			print("Comparing", file1, "-", file2)
 			seq1 = FastaSequence(file1)
@@ -303,20 +304,21 @@ if __name__ == "__main__":
 
 			import subprocess
 
-
-			out=subprocess.Popen(["mash","dist",file1,file2,"-s","10"],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-			stdout,stderr= out.communicate()
+			out = subprocess.Popen(["mash", "dist", file1, file2, "-s", "10"], stdout=subprocess.PIPE,
+			                       stderr=subprocess.STDOUT)
+			stdout, stderr = out.communicate()
 			print(stdout)
 			output = str(stdout).split('t')[-1].split('\\')[0]
-			output=output.split("/")
-			mashresult1 = int(output[0])/int(output[1])
+			output = output.split("/")
+			mashresult1 = int(output[0]) / int(output[1])
 			print("mash kmer {}".format(mashresult1))
 
 			file1pre = file1.replace("/", "_preprocessed/preprocessed_")
 			file2pre = file2.replace("/", "_preprocessed/preprocessed_")
 
-
-			out = subprocess.Popen(["mash", "dist", file1pre, file2pre,"-s","10", "-k", "4", "-z"  ,"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			out = subprocess.Popen(["mash", "dist", file1pre, file2pre, "-s", "10", "-k", "4", "-z",
+			                        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
+			                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			stdout, stderr = out.communicate()
 
 			output = str(stdout).split('t')[-1].split('\\')[0]
@@ -324,41 +326,45 @@ if __name__ == "__main__":
 			mashresult2 = int(output[0]) / int(output[1])
 			print("mash kfing {}".format(mashresult2))
 
-			#ordinate2.append(abs(mashresult1-mashresult2))
-			#ascisse2.append(mashresult1)
-			ordinate2.append(1-abs(mashresult1-calc))
+			# ordinate2.append(abs(mashresult1-mashresult2))
+			# ascisse2.append(mashresult1)
+			ordinate2.append(1 - abs(mashresult1 - calc))
 			ascisse2.append(calc)
 
-			ordinate3.append(1-abs(mashresult2-calc))
+			ordinate3.append(1 - abs(mashresult2 - calc))
 			ascisse3.append(calc)
 
-			ordinate.append(1-abs(estim-calc))
+			ordinate.append(1 - abs(estim - calc))
 			ascisse.append(calc)
 
 			print("---------------------------------")
 			print()
-			if abs(calc - estim) >0.25:
-				y+=1
+			if abs(calc - estim) > 0.25:
+				y += 1
 
-		#plt.plot(ascisse,	ordinate)
+		# plt.plot(ascisse,	ordinate)
 		plt.plot(ascisse2, ordinate2, "b.")
-		plt.plot(ascisse,	ordinate, "r+")
+		plt.plot(ascisse, ordinate, "r+")
 
 		plt.plot(ascisse3, ordinate3, "y*")
-		plt.axis([0,1,0,1])
+		plt.axis([0, 1, 0, 1])
 		plt.xlabel("Similarità stringhe")
 		plt.ylabel("Accuracy^-1")
-		plt.legend(["Mash k-mer","Jaccard k-finger","Mash k-finger"])
+		plt.legend(["Mash k-mer", "Jaccard k-finger", "Mash k-finger"])
 		plt.title("CIAO")
 		plt.grid()
 		plt.show()
 
-
-
-
 		print(y)
 
+	elif action == 9:
 
+		import m_create_longlongreads
+
+		dir = "prova"
+		maxlen = 250
+		for part in m_create_longlongreads.main(dir, maxlen):
+			print(part)
 
 	else:
 		print("Goodbye...️")
