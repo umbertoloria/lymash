@@ -45,6 +45,15 @@ def reverse_complement(seq):
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return ''.join(complement[i] for i in reversed(seq))
 
+
+
+def _complement(seq):
+    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
+    return ''.join(complement[i] for i in seq)
+
+def _reverse(seq):
+    return ''.join(i for i in reversed(seq))
+
 def get_remove_border(border):
     def f(l):
         return l[:border], l[border:-border], l[-border:]

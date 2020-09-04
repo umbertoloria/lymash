@@ -96,31 +96,49 @@ def estimate_jaccard_difference(seq1: Sequence, seq2: Sequence, kmer_size: int, 
 
 	read1 = seq1.get_data()
 	read2 = seq2.get_data()
-	print("lunghezze")
-	print(len(read1))
-	print(read1)
-	print(get_factors(factorization, read1))
-	print("----------------------------------------------------------------")
-	print(get_factors(factorization, read2))
-	print(read2)
-	print(len(read2))
+
+
+	from lyndon.utils import _complement
 
 	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
 
-	a_factors_lengths = tuple([len(f) for f in get_factors(factorization, read1)])
-	b_factors_lengths = tuple([len(f) for f in get_factors(factorization, read2)])
+	a_factors_lengths = tuple([len(f) for f in get_factors(factorization, read1)] + [0] + [len(f) for f in get_factors(factorization, _complement(read1))])
 
-	print(a_factors_lengths)
-	print(b_factors_lengths)
+	b_factors_lengths = tuple([len(f) for f in get_factors(factorization, read2)] + [0] + [len(f) for f in get_factors(factorization, _complement(read2))])
 
-	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size))
-	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size))
+
+
+
+
+	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
+	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
 
 	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
 
 	return jaccard_calculated, jaccard_estimated
 
+def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size: int, factorization, kfinger_size: int):
+	from factorization import get_factors
+	split = 100
+	read1 = seq1.get_data()
+	read2 = seq2.get_data()
 
+
+	from lyndon.utils import _complement
+
+	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+
+	a_factors_lengths = tuple(get_fingers_after_split(factorization, read1,split)) + tuple([0]) + tuple(get_fingers_after_split(factorization, _complement(read1),split))
+	b_factors_lengths = tuple(get_fingers_after_split(factorization, read2,split)) + tuple([0]) + tuple(get_fingers_after_split(factorization, _complement(read2),split))
+
+
+
+	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
+	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
+
+	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
+
+	return jaccard_calculated, jaccard_estimated
 
 
 '''
