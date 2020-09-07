@@ -119,7 +119,7 @@ def estimate_jaccard_difference(seq1: Sequence, seq2: Sequence, kmer_size: int, 
 
 def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size: int, factorization, kfinger_size: int):
 	from factorization import get_factors
-	split = 100
+	split = 140
 	read1 = seq1.get_data()
 	read2 = seq2.get_data()
 
@@ -128,15 +128,15 @@ def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size:
 
 	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
 
-	a_factors_lengths = tuple(get_fingers_after_split(factorization, read1,split)) + tuple([0]) + tuple(get_fingers_after_split(factorization, _complement(read1),split))
-	b_factors_lengths = tuple(get_fingers_after_split(factorization, read2,split)) + tuple([0]) + tuple(get_fingers_after_split(factorization, _complement(read2),split))
+	a_factors_lengths = tuple(get_fingers_after_split(factorization, read1,split)) + (0,) + tuple(get_fingers_after_split(factorization, _complement(read1),split))
+	b_factors_lengths = tuple(get_fingers_after_split(factorization, read2,split)) + (0,) + tuple(get_fingers_after_split(factorization, _complement(read2),split))
 
 
 
 	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
 	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
 
-	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
+	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint,True)
 
 	return jaccard_calculated, jaccard_estimated
 

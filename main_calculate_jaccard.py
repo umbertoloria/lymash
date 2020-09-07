@@ -47,5 +47,5 @@ def fixed_kmer_size():
 	print("kmer size:", kmer_size)
 	print()
 
-	p = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	p = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)),True)
 	print("Similarity: %10.9f" % p)

@@ -17,14 +17,13 @@ def main():
             if filepath.endswith(".fasta"):
                 title, read = read_from_fasta(dir + "/" + filepath)
                 comp_read = _complement(read)
-                print("read : {} reversed : {}".format(read, comp_read))
+
                 comp_fingerprint = get_fingers_after_split(factorization, comp_read,100)
                 fingerprint = get_fingers_after_split(factorization, read,100)
                 file = open(os.path.join(dir + "_preprocessed", "preprocessed_" + filepath), "w")
-                file.write( title + " preprocessed encoding lyndon fact lengths with ascii code\n")
+                file.write( "@"+title + " preprocessed encoding lyndon fact lengths with ascii code\n")
                 alf = " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
-                print(filepath)
-                print(fingerprint)
+
                 i=0
                 for finger in fingerprint:
                     if i%70==0 and i>0:
@@ -35,7 +34,6 @@ def main():
 
                 file.write("#")
                 i=0
-                print(comp_fingerprint)
                 for finger in comp_fingerprint:
                     if i % 70 == 0:
                         file.write("\n")
