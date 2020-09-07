@@ -36,16 +36,64 @@ def explore_kmer_size():
 
 
 def fixed_kmer_size():
-	file1 = input("Tell me the first file> ")
-	file2 = input("Tell me the second file> ")
-	kmer_size = int(input("Tell me the kmer size (usually 21)> "))
-	title1, read1 = read_from_fasta(file1)
-	title2, read2 = read_from_fasta(file2)
-	print("Comparing:", file1, "with", file2)
-	print(file1, "'s title:", title1)
-	print(file2, "'s title:", title2)
-	print("kmer size:", kmer_size)
-	print()
+	from datetime import datetime
 
-	p = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)),True)
-	print("Similarity: %10.9f" % p)
+	def calc(file1, file2, kmer_size, *output_functions):
+		title1, read1 = read_from_fasta(file1)
+		title2, read2 = read_from_fasta(file2)
+		before = datetime.now()
+		similarity = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+		after = datetime.now()
+		duration = after - before
+		for output_function in output_functions:
+			output_function(file1, file2, title1, title2, kmer_size, similarity, duration)
+
+	def stdout_output_function(file1, file2, title1, title2, kmer_size, similarity, duration):
+		# print("Comparing:", file1, "with", file2)
+		# print(file1, "'s title:", title1)
+		# print(file2, "'s title:", title2)
+		# print("kmer size:", kmer_size, "\n")
+		# print("Similarity: %10.9f" % similarity)
+		n1 = file1.split("/")[-1].split(".")[0]
+		n2 = file2.split("/")[-1].split(".")[0]
+		print("%2s <-> %2s  (k=%d) -> %6.2f" % (n1, n2, kmer_size, similarity * 100) + "%" + (
+				"    (%d microseconds)" % duration.microseconds))
+
+	enable_pair_computation = input("Compute comparations from pairs (Y/n)> ")
+	enable_pair_computation = True if enable_pair_computation == "" else (enable_pair_computation == "Y")
+
+	if enable_pair_computation:
+
+		import os
+		print("Tell me files to compare ")
+		files = []
+		path = input("> ")
+		while path != "":
+			if not os.path.exists(path):
+				print("File o directory non esistente")
+			elif os.path.isdir(path):
+				new_files = os.listdir(path)
+				new_files.sort()
+				for new_file in new_files:
+					new_file = path + "/" + new_file
+					if new_file not in files:
+						files.append(new_file)
+			else:
+				if path not in files:
+					files.append(path)
+			path = input("> ")
+
+		kmer_size = input("Tell me the kmer size (usually 21)> ")
+		kmer_size = 21 if kmer_size == "" else int(kmer_size)
+
+		from itertools import combinations
+		for file1, file2 in combinations(files, 2):
+			calc(file1, file2, kmer_size, stdout_output_function)
+
+	else:
+
+		file1 = input("Tell me the first file> ")
+		file2 = input("Tell me the second file> ")
+		kmer_size = input("Tell me the kmer size (usually 21)> ")
+		kmer_size = 21 if kmer_size == "" else int(kmer_size)
+		calc(file1, file2, kmer_size, stdout_output_function)

@@ -428,8 +428,8 @@ if __name__ == "__main__":
 		alfabet = input("Tell me the alfabet (ACGT)> ")
 		alfabet = list("ACGT") if alfabet == "" else list(alfabet)
 
-		datasets_count = int(input("Tell me the dataset count> "))
-		datasets_folder = input("Tell me the directory to the dataseta in> ")
+		datasets_count = int(input("Tell me how much datasets do you want> "))
+		datasets_folder = input("Tell me the dataset directory> ")
 
 		print("Tell me the dataset size")
 		print("  150-200:  short read")
