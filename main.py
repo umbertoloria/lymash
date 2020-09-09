@@ -16,14 +16,15 @@ if __name__ == "__main__":
 	print("8: Antonio dammi un nome...")
 	print("9: Crea dataset di long long reads")
 	print("10: Crea dataset generico")
+	print("11: Dataset short reads scrivi, kmer, kfinger")
 	print("_: Quit")
 	action = int(input("\nTell me what to do > "))
 	if action == 1:
 		main_export_fq_in_fasta_files.main()
 	elif action == 2:
-		main_calculate_jaccard.explore_kmer_size()
+		main_calculate_jaccard.main_explore_kmer_size()
 	elif action == 3:
-		main_calculate_jaccard.fixed_kmer_size()
+		main_calculate_jaccard.main_fixed_kmer_size()
 	elif action == 4:
 
 		from main_estimate_jaccard import jaccard_thanks_factorizations, get_csv_exporter
@@ -124,7 +125,7 @@ if __name__ == "__main__":
 		ordinate = []
 		ordinate2 = []
 		ordinate3 = []
-		from main_estimate_jaccard import estimate_jaccard_difference
+		from main_estimate_jaccard import calculate_jaccard, estimate_jaccard
 
 		# CLI inputs
 		print("Tell me files to compare ")
@@ -153,6 +154,10 @@ if __name__ == "__main__":
 			factorization = "cfl_icfl_comb"
 		kfinger_size = input("tell me the kfinger sizes(3)")
 		kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
+
+		use_super_fp = input("Tell me if you want the fingerprint to have [...-0-rev_compls] [Y/n]> ")
+		use_super_fp = (use_super_fp == "Y" or use_super_fp == "y" or use_super_fp == "")
+
 		max = 0
 		import copy
 
@@ -187,7 +192,8 @@ if __name__ == "__main__":
 			seq1 = FastaSequence(file1)
 			seq2 = FastaSequence(file2)
 
-			calc, estim = estimate_jaccard_difference(seq1, seq2, kmer_size, factorization, kfinger_size)
+			calc = calculate_jaccard(seq1, seq2, kmer_size)
+			estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
 			print(calc, estim)
 
 			import subprocess
@@ -456,6 +462,58 @@ if __name__ == "__main__":
 			f.write("\n")
 			f.close()
 
+	elif action == 11:
+
+		from format import read_from_fasta, write_into_fasta
+
+		option = input("[S] scrivi\n[K] Compara con k-mers\n[F] Compara con k-fingers\n> ")
+		if option == "S":
+
+			_, ss = read_from_fasta("in/13.fasta")
+			offset = 30
+			width = 150
+			for i in range(11):
+				read = ss[i * (width - offset): i * (width - offset) + width]
+				write_into_fasta("dsa/" + str(i + 1) + ".fasta", read)
+
+		elif option == "K":
+
+			from main_calculate_jaccard import calc_similarity_with_kmers_from_fasta_pair
+
+
+			def my_output_function(file1, file2, title1, title2, kmer_size, similarity, duration):
+				# print(file1, "<->", file2, "(" + str(kmer_size) + ")")
+				# print("similar")
+				n1 = file1.split("/")[-1].split(".")[0]
+				n2 = file2.split("/")[-1].split(".")[0]
+				print("%2s <-> %2s  (k=%d) -> %6.2f" % (n1, n2, kmer_size, similarity * 100) + "%"
+				      + ("    (%d microseconds)" % duration.microseconds))
+
+
+			kmer_size = 21
+			for left_index in range(1, 11):
+				fastapath1 = "dsa/" + str(left_index) + ".fasta"
+				fastapath2 = "dsa/" + str(left_index + 1) + ".fasta"
+				calc_similarity_with_kmers_from_fasta_pair(fastapath1, fastapath2, kmer_size, my_output_function)
+
+		elif option == "F":
+			from main_estimate_jaccard import calculate_jaccard, estimate_jaccard
+			from Sequence import FastaSequence
+
+			seq1 = FastaSequence("dsa/1.fasta")
+			seq2 = FastaSequence("dsa/2.fasta")
+			kmer_size = 21
+			factorization = "cfl_icfl_comb"
+
+			for use_super_fp in [False, True]:
+				for kfinger_size in range(2, 8 + 1):
+					print("Use super fingerprint", use_super_fp)
+					print("Kfinger size", kfinger_size)
+					calc = calculate_jaccard(seq1, seq2, kmer_size)
+					estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
+					print("calc", calc)
+					print("estim", estim)
+					print()
 
 	else:
 		print("Goodbye...️")

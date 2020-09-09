@@ -38,7 +38,7 @@ while 1:
     import os
     from Sequence import FastaSequence
 
-    from main_estimate_jaccard import estimate_jaccard_difference
+    from main_estimate_jaccard import calculate_jaccard, estimate_jaccard
 
     # CLI inputs
     files = []
@@ -90,7 +90,7 @@ while 1:
                 max = int(w)
 
 
-
+    use_super_fp = True
     y = 0
     for i in range(len(files) - 1):
         file1 = files[i]
@@ -98,7 +98,8 @@ while 1:
         #print("Comparing", file1, "-", file2)
         seq1 = FastaSequence(file1)
         seq2 = FastaSequence(file2)
-        calc, estim = estimate_jaccard_difference(seq1, seq2, kmer_size, factorization, kfinger_size)
+        calc = calculate_jaccard(seq1, seq2, kmer_size)
+        estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
         #print(calc, estim)
         if abs(calc - estim) > 0.30:
             y += 1

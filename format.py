@@ -1,3 +1,6 @@
+from factorization import subdivide
+
+
 def get_reads_from_fq_file(filepath):
 	f = open(filepath)
 	i = 0
@@ -27,3 +30,14 @@ def read_from_fasta(filepath):
 			line = line[:-1]
 		read += line
 	return title, read
+
+
+def write_into_fasta(filepath, read, title=""):
+	f = open(filepath, "w")
+	f.write(">")
+	f.write(title)
+	f.write("\n")
+	for line in subdivide(read, 70):
+		f.write(line)
+		f.write("\n")
+	f.close()

@@ -1,9 +1,10 @@
 from format import read_from_fasta
 from jaccard import jaccard
 from sliding_windows import ksliding
+from datetime import datetime
 
 
-def explore_kmer_size():
+def main_explore_kmer_size():
 	file1 = input("Tell me the first file> ")
 	file2 = input("Tell me the second file> ")
 	title1, read1 = read_from_fasta(file1)
@@ -35,19 +36,18 @@ def explore_kmer_size():
 	print()
 
 
-def fixed_kmer_size():
-	from datetime import datetime
+def calc_similarity_with_kmers_from_fasta_pair(file1, file2, kmer_size, *output_functions):
+	title1, read1 = read_from_fasta(file1)
+	title2, read2 = read_from_fasta(file2)
+	before = datetime.now()
+	similarity = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	after = datetime.now()
+	duration = after - before
+	for output_function in output_functions:
+		output_function(file1, file2, title1, title2, kmer_size, similarity, duration)
 
-	def calc(file1, file2, kmer_size, *output_functions):
-		title1, read1 = read_from_fasta(file1)
-		title2, read2 = read_from_fasta(file2)
-		before = datetime.now()
-		similarity = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
-		after = datetime.now()
-		duration = after - before
-		for output_function in output_functions:
-			output_function(file1, file2, title1, title2, kmer_size, similarity, duration)
 
+def main_fixed_kmer_size():
 	def stdout_output_function(file1, file2, title1, title2, kmer_size, similarity, duration):
 		# print("Comparing:", file1, "with", file2)
 		# print(file1, "'s title:", title1)
@@ -88,7 +88,7 @@ def fixed_kmer_size():
 
 		from itertools import combinations
 		for file1, file2 in combinations(files, 2):
-			calc(file1, file2, kmer_size, stdout_output_function)
+			calc_similarity_with_kmers_from_fasta_pair(file1, file2, kmer_size, stdout_output_function)
 
 	else:
 
@@ -96,4 +96,4 @@ def fixed_kmer_size():
 		file2 = input("Tell me the second file> ")
 		kmer_size = input("Tell me the kmer size (usually 21)> ")
 		kmer_size = 21 if kmer_size == "" else int(kmer_size)
-		calc(file1, file2, kmer_size, stdout_output_function)
+		calc_similarity_with_kmers_from_fasta_pair(file1, file2, kmer_size, stdout_output_function)

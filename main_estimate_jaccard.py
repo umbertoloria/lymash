@@ -68,11 +68,11 @@ def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int
 
 			a_factors_lengths = get_fingers_after_split(factorization, read1, split)
 			b_factors_lengths = get_fingers_after_split(factorization, read2, split)
-			print("fattori stringa 1 con  {} {} : {} ".format(factorization,split ,a_factors_lengths))
-			print("fattori stringa 2 con {} {} : {} ".format(factorization,split ,b_factors_lengths))
+			print("fattori stringa 1 con  {} {} : {} ".format(factorization, split, a_factors_lengths))
+			print("fattori stringa 2 con {} {} : {} ".format(factorization, split, b_factors_lengths))
 
 			for window_size in range(3, 9):  # 3-8
-				if window_size>len(a_factors_lengths) or window_size>len(b_factors_lengths):
+				if window_size > len(a_factors_lengths) or window_size > len(b_factors_lengths):
 					continue
 				a_fingerprint = set(ksliding(a_factors_lengths, window_size))
 				b_fingerprint = set(ksliding(b_factors_lengths, window_size))
@@ -91,31 +91,41 @@ def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int
 	return result
 
 
-def estimate_jaccard_difference(seq1: Sequence, seq2: Sequence, kmer_size: int, factorization, kfinger_size: int):
+def calculate_jaccard(seq1: Sequence, seq2: Sequence, kmer_size: int):
+	read1 = seq1.get_data()
+	read2 = seq2.get_data()
+	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	return jaccard_calculated
+
+
+def estimate_jaccard(seq1: Sequence, seq2: Sequence, factorization: str, kfinger_size: int, use_super_fp: bool = False):
 	from factorization import get_factors
+	from lyndon.utils import _complement
 
 	read1 = seq1.get_data()
 	read2 = seq2.get_data()
 
+	# a_factors_lengths = tuple([len(f) for f in get_factors(factorization, read1)] + [0] + [len(f) for f in get_factors(factorization, _complement(read1))])
+	# b_factors_lengths = tuple([len(f) for f in get_factors(factorization, read2)] + [0] + [len(f) for f in get_factors(factorization, _complement(read2))])
 
-	from lyndon.utils import _complement
+	afp = [len(f) for f in get_factors(factorization, read1)]
+	if use_super_fp:
+		afp += [0]
+		afp += [len(f) for f in get_factors(factorization, _complement(read1))]
+	afp = tuple(afp)
 
-	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
+	bfp = [len(f) for f in get_factors(factorization, read2)]
+	if use_super_fp:
+		bfp += [0]
+		bfp += [len(f) for f in get_factors(factorization, _complement(read2))]
+	bfp = tuple(bfp)
 
-	a_factors_lengths = tuple([len(f) for f in get_factors(factorization, read1)] + [0] + [len(f) for f in get_factors(factorization, _complement(read1))])
+	a_kfingers = set(ksliding(afp, kfinger_size, False))
+	b_kfingers = set(ksliding(bfp, kfinger_size, False))
 
-	b_factors_lengths = tuple([len(f) for f in get_factors(factorization, read2)] + [0] + [len(f) for f in get_factors(factorization, _complement(read2))])
+	jaccard_estimated = jaccard(a_kfingers, b_kfingers)
+	return jaccard_estimated
 
-
-
-
-
-	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
-	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
-
-	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
-
-	return jaccard_calculated, jaccard_estimated
 
 def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size: int, factorization, kfinger_size: int):
 	from factorization import get_factors
@@ -123,20 +133,19 @@ def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size:
 	read1 = seq1.get_data()
 	read2 = seq2.get_data()
 
-
 	from lyndon.utils import _complement
 
 	jaccard_calculated = jaccard(set(ksliding(read1, kmer_size)), set(ksliding(read2, kmer_size)))
 
-	a_factors_lengths = tuple(get_fingers_after_split(factorization, read1,split)) + (0,) + tuple(get_fingers_after_split(factorization, _complement(read1),split))
-	b_factors_lengths = tuple(get_fingers_after_split(factorization, read2,split)) + (0,) + tuple(get_fingers_after_split(factorization, _complement(read2),split))
-
-
+	a_factors_lengths = tuple(get_fingers_after_split(factorization, read1, split)) + (0,) + tuple(
+		get_fingers_after_split(factorization, _complement(read1), split))
+	b_factors_lengths = tuple(get_fingers_after_split(factorization, read2, split)) + (0,) + tuple(
+		get_fingers_after_split(factorization, _complement(read2), split))
 
 	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
 	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
 
-	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint,True)
+	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint, True)
 
 	return jaccard_calculated, jaccard_estimated
 
