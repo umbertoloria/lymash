@@ -136,7 +136,7 @@ def icfl_(w):
         l[0] = p + l[0]
     return l
 
-def cfl_icfl(data, cfl_max=10, sep=False):
+def cfl_icfl(data, cfl_max=30, sep=False):
     if type(data) == str:
         result = cfl_icfl_(data, cfl_max, sep)
     else:
@@ -146,7 +146,7 @@ def cfl_icfl(data, cfl_max=10, sep=False):
     return result
 
 
-def cfl_icfl_(w, cfl_max=10, sep=False):
+def cfl_icfl_(w, cfl_max=30, sep=False):
     result = []
     cfl_fact = cfl(w)
     for factor in cfl_fact:

@@ -27,7 +27,7 @@ if __name__ == "__main__":
 		main_calculate_jaccard.main_fixed_kmer_size()
 	elif action == 4:
 
-		from main_estimate_jaccard import jaccard_thanks_factorizations, get_csv_exporter
+		from main_estimate_jaccard import jaccard_thanks_factorizations, get_csv_exporter, get_grafico_exporter
 		import os
 		from collections import defaultdict
 		from itertools import combinations
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 			seq1 = FastaSequence(file1)
 			seq2 = FastaSequence(file2)
 
-			result = jaccard_thanks_factorizations(seq1, seq2, kmer_size, tolerance, csv_exporter)
+			result = jaccard_thanks_factorizations(seq1, seq2, kmer_size, tolerance, csv_exporter, get_grafico_exporter)
 
 			for factorization, configs in result["factorizations"].items():
 				for split, window_size in configs:

@@ -64,12 +64,12 @@ def jaccard_thanks_factorizations(seq1: Sequence, seq2: Sequence, kmer_size: int
 	for factorization in FACTORIZATIONS:
 		sopravvissuti = []
 
-		for split in range(300, 301, 25):  # 50-300
+		for split in range(50, 301, 25):  # 50-300
 
 			a_factors_lengths = get_fingers_after_split(factorization, read1, split)
 			b_factors_lengths = get_fingers_after_split(factorization, read2, split)
-			print("fattori stringa 1 con  {} {} : {} ".format(factorization, split, a_factors_lengths))
-			print("fattori stringa 2 con {} {} : {} ".format(factorization, split, b_factors_lengths))
+			# print("fattori stringa 1 con  {} {} : {} ".format(factorization, split, a_factors_lengths))
+			# print("fattori stringa 2 con {} {} : {} ".format(factorization, split, b_factors_lengths))
 
 			for window_size in range(3, 9):  # 3-8
 				if window_size > len(a_factors_lengths) or window_size > len(b_factors_lengths):
@@ -223,3 +223,45 @@ def get_csv_exporter(dirname):
 					i[factorization] += 1
 
 	return export_csv
+
+
+def get_grafico_exporter(data: JaccardFactResult):
+	import matplotlib.pyplot as plt
+	plt.figure(num=None, figsize=(15, 10), dpi=80, facecolor="w", edgecolor="k")
+
+	'''
+	PLOT
+	for factorization in FACTORIZATIONS:
+		x = []
+		y = []
+		ests = data.get_estimated_jaccard_from_factorization(factorization)
+		for (split, window_size), value in ests.items():
+			x.append(factorization)
+			y.append(1 - abs(value["accuracy"]))
+		plt.plot(x, y, "b.")
+	'''
+	values = []
+	for factorization in FACTORIZATIONS:
+		val = 0
+		ests = data.get_estimated_jaccard_from_factorization(factorization)
+		for (split, window_size), value in ests.items():
+			val += 1
+		values.append(val)
+	plt.bar(FACTORIZATIONS, values)
+	# plt.axis([0, 1, 0, 1])
+
+	kmer_size = 21
+	graphname = data.get_sequence1().get_name() + "-" + data.get_sequence2().get_name() + ".csv"
+
+	plt.xlabel("Fattorizzazioni")
+	plt.ylabel("Precisione (oracolo: " + str(data.get_calculated_jaccard(kmer_size)) + ")")
+	'''
+	plt.legend(["Mash " + str(kmer_size) + "-mer",
+	            "Jaccard " + str(kfinger_size) + "-finger ",
+	            "Mash " + str(kfinger_size) + "-finger",
+	            "Mash " + str(kfinger_size + 1) + "-finger",
+	            "Mash " + str(kfinger_size + 2) + "-finger"])
+	'''
+	plt.title(graphname)
+	plt.grid()
+	plt.show()
