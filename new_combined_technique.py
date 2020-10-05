@@ -1,5 +1,5 @@
 from collections import defaultdict
-from Sequence import Sequence
+from sequences.Sequence import Sequence
 from factorization import get_fingers_after_split
 from jaccard import jaccard
 from sliding_windows import ksliding

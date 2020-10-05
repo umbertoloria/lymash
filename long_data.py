@@ -1,7 +1,5 @@
-from Sequence import FastaSequence
-
 import os
-import random
+
 
 def create_long_data():
 	dirname = "long_dataset4"

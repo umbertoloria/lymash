@@ -1,13 +1,12 @@
 #!/bin/env python3
 
 import main_export_fq_in_fasta_files
-import main_mash_interface
-import main_process_files_in_directory
 from files_manager import input_files
 from traditional_technique import jaccard_on_kmers
+from suites import jaccard_kmers_suite, mash_interfacing_suite, jaccard_kfingers_suite
 
 if __name__ == "__main__":
-	print("EXTRA")
+	print("FORMATS")
 	print("1: Export FASTA from FQ")
 	print("")
 	print("CALCULATE SIMILARITY: JACCARD ON K-MERS")
@@ -17,7 +16,7 @@ if __name__ == "__main__":
 	print("ESTIMATE SIMILARITY: JACCARD ON K-FINGERS")
 	print("4: Estimate Jaccard similarity (estimate on pairs of some files)")
 	print("")
-	print("BOH...")
+	print("MASH INTERFACING")
 	print("5: Preprocess all the files in a directory")
 	print("6: Encode in ASCII the fingers of two FASTA files")
 	print("7: WE (pure a me plz)")
@@ -25,129 +24,26 @@ if __name__ == "__main__":
 	print("9: Crea dataset di long long reads")
 	print("10: Crea dataset generico")
 	print("11: Dataset short reads scrivi, kmer, kfinger")
+	print("")
+	print("BOH...")
 	print("_: Quit")
 	print("")
 	action = int(input("\nTell me what to do > "))
 
+	# TODO: remove numbers for suites
+	if 2 <= action <= 3:
+		jaccard_kmers_suite.jaccard_kmers_suite_main(action)
+	elif action == 4:
+		jaccard_kfingers_suite.jaccard_kfingers_suite_main(action)
+	elif 5 <= action <= 6:
+		mash_interfacing_suite.mash_interfacing_suite_main(action)
+
 	if action == 1:
 		main_export_fq_in_fasta_files.main()
 
-	elif action == 2:
-
-		from Sequence import FastaSequence
-		from main_calculate_jaccard import progressing_jaccard_on_kmers
-
-		seq1 = FastaSequence(input("Tell me the first file> "))
-		seq2 = FastaSequence(input("Tell me the second file> "))
-
-		print('Comparing:', seq1.get_name(), 'with', seq2.get_name(), '\n')
-
-
-		def stdout_output(kmer_size, similarity, prev_similarity=None):
-			if prev_similarity is None:
-				print("%3d => %10.9f" % (kmer_size, similarity))
-			else:
-				diff = (1 - similarity / prev_similarity) * 100
-				print("%3d => %10.9f   (diminuisce del %5.3f" % (kmer_size, similarity, diff) + '%)')
-
-
-		progressing_jaccard_on_kmers(seq1.get_data(), seq2.get_data(), 10, stdout_output)
-
-	elif action == 3:
-
-		from Sequence import FastaSequence
-		from itertools import combinations
-		from main_calculate_jaccard import calc_similarity_with_kmers_from_fasta_pair, stdout_output_function
-
-		files = input_files()
-
-		kmer_size = input("Tell me the kmer size (usually 21)> ")
-		kmer_size = 21 if kmer_size == "" else int(kmer_size)
-
-		sequences = [FastaSequence(file) for file in files]
-		for seq1, seq2 in combinations(sequences, 2):
-			calc_similarity_with_kmers_from_fasta_pair(seq1, seq2, kmer_size, stdout_output_function)
-
-	elif action == 4:
-
-		from main_estimate_jaccard import new_combined_technique_analyzer, get_csv_exporter, get_grafico_exporter
-		import os
-		from collections import defaultdict
-		from itertools import combinations
-		from Sequence import FastaSequence
-
-		files = input_files()
-
-		kmer_size = input("Tell me the kmer size (21) > ")
-		kmer_size = 21 if kmer_size == "" else int(kmer_size)
-
-		tolerance = input("Tell me the tolerance (0.15) > ")
-		tolerance = 0.15 if tolerance == "" else float(tolerance)
-
-		print()
-
-		# Creation of a work directory
-		dirname = []
-		for file in files:
-			file = file.split("/")[-1]
-			if '.' in file:
-				file = file[:file.rfind(".")]
-			dirname.append(file)
-		dirname = "-".join(dirname) + " kmer " + str(kmer_size) + "-tolerance " + str(int(tolerance * 100))
-		attempt = 1
-		if os.path.isdir(dirname):
-			attempt = 2
-			dirname = dirname + " (2)"
-		while os.path.isdir(dirname):
-			attempt += 1
-			dirname = dirname[:dirname.rfind("(")] + "(" + str(attempt) + ")"
-		os.mkdir(dirname)
-
-		sequences = [FastaSequence(file) for file in files]
-
-		# Exporters
-		csv_exporter = get_csv_exporter(dirname)
-		grafico_exporter = get_grafico_exporter()
-
-		# Summary
-		summary = open(dirname + "/summary.txt", "w")
-
-		# Sopravvissuti
-		sopravvissuti = defaultdict(int)
-
-		for seq1, seq2 in combinations(sequences, 2):
-			print("Comparing", seq1.get_name(), "-", seq2.get_name())
-
-			result = new_combined_technique_analyzer(seq1, seq2, kmer_size, tolerance, csv_exporter, grafico_exporter)
-
-			for factorization, configs in result["factorizations"].items():
-				for split, window_size in configs:
-					sopravvissuti[(split, window_size, factorization)] += 1
-
-			summary.write(seq1.get_name() + " - " + seq2.get_name() + "\n")
-			summary.write(seq1.get_title() + "\n")
-			summary.write(seq2.get_title() + "\n\n")
-			summary.write("kmer size ->    " + str(kmer_size) + "\n")
-			summary.write("jaccard   ->    %5.2f" % (result["jaccard"] * 100) + "%\n")
-			summary.write("tolerance ->    %5.2f" % (tolerance * 100) + "%\n\n")
-			for factorization, configs in result["factorizations"].items():
-				summary.write("  %13s  %3d\n" % (factorization, len(configs)))
-			summary.write("\n----------------------------------------------------------------------\n\n")
-
-		sopravvissuti = sorted(sopravvissuti.items(), key=lambda p: p[1], reverse=True)
-		for (split, window_size, factorization), count in sopravvissuti:
-			summary.write("%3d-%1d %15s   -> %3d\n" % (split, window_size, factorization, count))
-		summary.close()
-
-	elif action == 5:
-		main_process_files_in_directory.main()
-	elif action == 6:
-		main_mash_interface.main()
 	elif action == 7:
 		import os
-		from collections import defaultdict
-		from itertools import combinations
-		from Sequence import FastaSequence
+		from sequences.Sequence import FastaSequence
 		import matplotlib.pyplot as plt
 
 		ascisse = []
@@ -265,7 +161,7 @@ if __name__ == "__main__":
 		import os
 		from collections import defaultdict
 		from itertools import combinations
-		from Sequence import FastaSequence
+		from sequences.Sequence import FastaSequence
 		import matplotlib.pyplot as plt
 
 		ascisse = []
@@ -416,12 +312,39 @@ if __name__ == "__main__":
 		print("precisione jaccard con {}-finger = {}".format(str(kfinger_size), sum(ordinate) / len(ordinate)))
 
 	elif action == 9:
+		def generate_parts(dir, maxlen):
+			files = os.listdir(dir)
+			files = [dir + "/" + file for file in files]
 
-		import m_create_longlongreads
+			cur_source_index = 0
+			cur_source_data = None
+
+			cur_dest_index = 0
+			cur_dest_data = ""
+
+			while cur_source_index < len(files):
+				if cur_source_data is None:
+					seq = FastaSequence(files[cur_source_index])
+					cur_source_data = seq.get_data()
+				data_to_consume_len = len(cur_source_data)
+				if len(cur_dest_data) + data_to_consume_len <= maxlen:
+					cur_dest_data += cur_source_data
+					cur_source_data = None
+					cur_source_index += 1
+				else:
+					space_to_fill = maxlen - len(cur_dest_data)
+					cur_dest_data += cur_source_data[:space_to_fill]
+					cur_source_data = cur_source_data[space_to_fill:]
+					cur_dest_index += 1
+					yield cur_dest_data
+					cur_dest_data = ""
+			if len(cur_dest_data) > 0:
+				yield cur_dest_data
+
 
 		dir = "prova"
 		maxlen = 250
-		for part in m_create_longlongreads.main(dir, maxlen):
+		for part in generate_parts(dir, maxlen):
 			print(part)
 
 	elif action == 10:
@@ -459,20 +382,21 @@ if __name__ == "__main__":
 
 	elif action == 11:
 
-		from format import read_from_fasta, write_into_fasta
+		from format import write_into_fasta
+		from sequences.Sequence import FastaSequence
 
 		option = input("[S] scrivi\n[K] Compara con k-mers\n[F] Compara con k-fingers\n> ")
 		if option == "S":
-			_, ss = read_from_fasta("in/13.fasta")
+			seq = FastaSequence("in/13.fasta")
 			offset = 30
 			width = 150
 			for i in range(11):
-				read = ss[i * (width - offset): i * (width - offset) + width]
+				read = seq.get_data()[i * (width - offset): i * (width - offset) + width]
 				write_into_fasta("dsa/" + str(i + 1) + ".fasta", read)
 
 		elif option == "K":
 
-			from main_calculate_jaccard import calc_similarity_with_kmers_from_fasta_pair, stdout_output_function
+			from suites.jaccard_kmers_suite import calc_similarity_with_kmers_from_fasta_pair, stdout_output_function
 
 			kmer_size = 21
 			for left_index in range(1, 11):
@@ -482,7 +406,7 @@ if __name__ == "__main__":
 
 		elif option == "F":
 			from main_estimate_jaccard import estimate_jaccard
-			from Sequence import FastaSequence
+			from sequences.Sequence import FastaSequence
 
 			seq1 = FastaSequence("dsa/1.fasta")
 			seq2 = FastaSequence("dsa/2.fasta")

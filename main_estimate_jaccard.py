@@ -1,4 +1,4 @@
-from Sequence import Sequence
+from sequences.Sequence import Sequence
 from sliding_windows import ksliding
 from jaccard import jaccard
 from traditional_technique import jaccard_on_kmers

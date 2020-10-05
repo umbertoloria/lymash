@@ -1,5 +1,5 @@
 import random
-import Sequence
+from sequences import Sequence
 from traditional_technique import jaccard_on_kmers
 
 
@@ -36,7 +36,7 @@ while 1:
 	dirname = create_dataset_fromread(seq1, 100)
 
 	import os
-	from Sequence import FastaSequence
+	from sequences.Sequence import FastaSequence
 
 	from main_estimate_jaccard import estimate_jaccard
 
