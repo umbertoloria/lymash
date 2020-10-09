@@ -1,6 +1,5 @@
 import os
 from factorization import get_factors
-from files_manager import input_files
 from lyndon.utils import _complement
 from sequences.Sequence import FastaSequence
 from traditional_technique import jaccard_on_kmers
@@ -80,7 +79,6 @@ def use_mash(filepath1: str, filepath2: str, sketch_size: int = 0, window_size: 
 
 def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 	directory = input("Tell me the directory with normal files (corresponding preprocessed files will be figured)> ")
-	# files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
 	files = [directory + '/' + filename for filename in os.listdir(directory)]
 	files.sort()
 
@@ -100,6 +98,8 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 	x_mash_on_kfingers = []
 	y_mash_on_kfingers = []
 
+	alf = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
+
 	for i in range(len(files) - 1):
 		file1 = files[i]
 		file2 = files[i + 1]
@@ -116,15 +116,10 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 		y_mash_on_kmers.append(1 - abs(calc - mashresult1))
 
 		# Mash on k-fingers
-		# asdf/fsadf/fff.fasta
 		file1pre = file1[0:file1.rfind('/')] + '_preprocessed/preprocessed_' + file1[file1.rfind('/') + 1:]
 		file2pre = file2[0:file2.rfind('/')] + '_preprocessed/preprocessed_' + file2[file2.rfind('/') + 1:]
-		# file1pre = file1.replace("/", "_preprocessed/preprocessed_")
-		# file2pre = file2.replace("/", "_preprocessed/preprocessed_")
 		x_mash_on_kfingers.append(calc)
-		mashresult2 = use_mash(file1pre, file2pre, 1000, 3,
-		                       "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*")
-		# TODO: optimite alf var
+		mashresult2 = use_mash(file1pre, file2pre, 1000, 3, alf)
 		y_mash_on_kfingers.append(1 - abs(calc - mashresult2))
 
 	plt.title("Factorization: " + factorization + "; kfinger size: " + str(kfinger_size))
@@ -140,34 +135,36 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 
 def grafico_mash_and_jaccard_with_varying_kfingers():
 	directory = input("Tell me the directory with normal files (corresponding preprocessed files will be figured)> ")
-	# files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
 	files = [directory + '/' + filename for filename in os.listdir(directory)]
 	files.sort()
 
-	kmer_size = input("Tell me the kmer size (21) > ")
+	kmer_size = input("Tell me the kmer size (21)> ")
 	kmer_size = 21 if kmer_size == "" else int(kmer_size)
 
-	factorization = input("Tell me the factorization (cfl_icfl_comb)")  # TODO: > si o no?
+	factorization = input("Tell me the factorization (cfl_icfl_comb)> ")
 	if factorization == "":
 		factorization = "cfl_icfl_comb"
 
-	kfinger_size = input("Tell me the kfinger sizes (3)")
+	kfinger_size = input("Tell me the kfinger sizes to use on MASH (4)> ")
 	kfinger_size = 4 if kfinger_size == "" else int(kfinger_size)
 
 	sketchsize = 1000
 
 	alf = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
 
-	x_jaccard_on_4fingers = []
 	x_mash_on_kmers = []
-	x_mash_on_4fingers = []
-	x_mash_on_5fingers = []
-	x_mash_on_6fingers = []
-
-	y_jaccard_on_4fingers = []
 	y_mash_on_kmers = []
+
+	x_jaccard_on_3fingers = []
+	y_jaccard_on_3fingers = []
+
+	x_mash_on_4fingers = []
 	y_mash_on_4fingers = []
+
+	x_mash_on_5fingers = []
 	y_mash_on_5fingers = []
+
+	x_mash_on_6fingers = []
 	y_mash_on_6fingers = []
 
 	for i in range(len(files) - 1):
@@ -178,8 +175,8 @@ def grafico_mash_and_jaccard_with_varying_kfingers():
 		seq2 = FastaSequence(file2)
 
 		calc, estim = estimate_jaccard_difference_split(seq1, seq2, kmer_size, factorization, 3)
-		x_jaccard_on_4fingers.append(calc)
-		y_jaccard_on_4fingers.append(1 - abs(estim - calc))
+		x_jaccard_on_3fingers.append(calc)
+		y_jaccard_on_3fingers.append(1 - abs(estim - calc))
 
 		mashresult1 = use_mash(file1, file2, sketchsize, kmer_size)
 		x_mash_on_kmers.append(calc)
@@ -212,22 +209,22 @@ def grafico_mash_and_jaccard_with_varying_kfingers():
 	plt.xlabel("Similarità stringhe")
 	plt.ylabel("Precisione")
 	plt.plot(x_mash_on_kmers, y_mash_on_kmers, "b.")
-	plt.plot(x_jaccard_on_4fingers, y_jaccard_on_4fingers, "r+")
+	plt.plot(x_jaccard_on_3fingers, y_jaccard_on_3fingers, "r+")
 	plt.plot(x_mash_on_4fingers, y_mash_on_4fingers, "y*")
 	plt.plot(x_mash_on_5fingers, y_mash_on_5fingers, "g*")
 	plt.plot(x_mash_on_6fingers, y_mash_on_6fingers, "r*")
-	plt.legend(["Mash " + str(kmer_size) + "-mer", "Jaccard " + str(kfinger_size) + "-finger ",
-	            "Mash " + str(kfinger_size) + "-finger", "Mash " + str(kfinger_size + 1) + "-finger",
-	            "Mash " + str(kfinger_size + 2) + "-finger"])
+	legend_list = ["Mash " + str(kmer_size) + "-mer", "Jaccard 3-finger", "Mash " + str(kfinger_size) + "-finger"]
+	legend_list += ["Mash " + str(kfinger_size + 1) + "-finger", "Mash " + str(kfinger_size + 2) + "-finger"]
+	plt.legend(legend_list)
 	plt.grid()
 	plt.show()
 
-	print("\nPrecisione medio con mash %-2d-mers:    %7.5f" % (kmer_size, sum(y_mash_on_kmers) / len(y_mash_on_kmers)))
-	print("Precisione jaccard con %-2d-fingers:    %7.5f" % (
-		kfinger_size, sum(y_jaccard_on_4fingers) / len(y_jaccard_on_4fingers)))
-	print("Precisione medio con mash %-2d-fingers: %7.5f" % (
+	print("\nPrecisione medio con mash %d-mers: %7.5f" % (kmer_size, sum(y_mash_on_kmers) / len(y_mash_on_kmers)))
+	print("Precisione jaccard con %d-fingers: %7.5f" % (
+		kfinger_size, sum(y_jaccard_on_3fingers) / len(y_jaccard_on_3fingers)))
+	print("Precisione medio con mash %d-fingers: %7.5f" % (
 		kfinger_size, sum(y_mash_on_4fingers) / len(y_mash_on_4fingers)))
-	print("Precisione medio con mash %-2d-fingers: %7.5f" % (
+	print("Precisione medio con mash %d-fingers: %7.5f" % (
 		kfinger_size + 1, sum(y_mash_on_5fingers) / len(y_mash_on_5fingers)))
-	print("Precisione medio con mash %-2d-fingers: %7.5f" % (
+	print("Precisione medio con mash %d-fingers: %7.5f" % (
 		kfinger_size + 2, sum(y_mash_on_6fingers) / len(y_mash_on_6fingers)))
