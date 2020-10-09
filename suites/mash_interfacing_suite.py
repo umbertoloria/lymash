@@ -31,7 +31,6 @@ def preprocess_directory():
 
 	alf = "#0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
 
-
 	files = os.listdir(directory)
 	files.sort()
 	for file in files:
@@ -58,39 +57,40 @@ def preprocess_directory():
 			savefile.close()
 
 
-def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
-	files = input_files()
+def use_mash(filepath1: str, filepath2: str, sketch_size: int = 0, window_size: int = 0, alphabet: str = ''):
+	args_of_call = ['mash', 'dist', filepath1, filepath2]
+	if sketch_size > 0:
+		args_of_call += ['-s', str(sketch_size)]
+	if window_size > 0:
+		args_of_call += ['-k', str(window_size)]
+	if alphabet != '':
+		args_of_call += ['-z', alphabet]
+	out = subprocess.Popen(args_of_call, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	stdout, stderr = out.communicate()
+	output = str(stdout).split('t')[-1].split('\\')[0]
+	output = output.split("/")
+	mashresult = int(output[0]) / int(output[1])
+	return mashresult
 
-	kmer_size = input("Tell me the kmer size (21) > ")
+
+def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
+	directory = input("Tell me the directory with normal files (corresponding preprocessed files will be figured)> ")
+	# files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
+	files = [directory + '/' + filename for filename in os.listdir(directory)]
+	files.sort()
+
+	kmer_size = input("Tell me the kmer size (21)> ")
 	kmer_size = 21 if kmer_size == "" else int(kmer_size)
 
-	factorization = input("Tell me the factorization (cfl_icfl_comb)")
+	factorization = input("Tell me the factorization (cfl_icfl_comb)> ")
 	if factorization == "":
 		factorization = "cfl_icfl_comb"
 
-	kfinger_size = input("Tell me the kfinger sizes(3)")
+	kfinger_size = input("Tell me the kfinger size (3)> ")
 	kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
-
-	# total_max = 0
-	# for file in files:
-	# 	seq = FastaSequence(file)
-	# 	read = seq.get_data()
-	# 	factors = [len(f) for f in get_factors(factorization, read)]
-	# 	factors2 = [len(f) for f in get_factors(factorization, _complement(read))]
-	# 	current_max = max(max(factors), max(factors2))
-	# 	if current_max > total_max:
-	# 		total_max = current_max
-	# print("Il fattore più grande ha lunghezza {}".format(total_max))
-	# TODO: o metti nel preprocessed o no (Antonio ha fatto in modo che i file che preprocessiamo erano gia con lunghezze giuste, quindi non dava mai problemi)
-	# Generalmente, il preprocessing non va proprio a buon fine, se i fattori sono troppo grandi...
-
-	files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
 
 	x_mash_on_kmers = []
 	y_mash_on_kmers = []
-
-	# x_jaccard_on_kfingers = []
-	# y_jaccard_on_kfingers = []
 
 	x_mash_on_kfingers = []
 	y_mash_on_kfingers = []
@@ -106,30 +106,23 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 		calc = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
 
 		# Mash on k-mers
-		out = subprocess.Popen(["mash", "dist", file1, file2, "-s", "1000"], stdout=subprocess.PIPE,
-		                       stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		output = str(stdout).split('t')[-1].split('\\')[0]
-		output = output.split("/")
-		mashresult1 = int(output[0]) / int(output[1])
 		x_mash_on_kmers.append(calc)
+		mashresult1 = use_mash(file1, file2, 1000)
 		y_mash_on_kmers.append(1 - abs(calc - mashresult1))
 
 		# Mash on k-fingers
-		file1pre = file1.replace("/", "_preprocessed/preprocessed_")
-		file2pre = file2.replace("/", "_preprocessed/preprocessed_")
-		out = subprocess.Popen(["mash", "dist", file1pre, file2pre, "-s", "1000", "-k", "3", "-z",
-		                        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
-		                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		output = str(stdout).split('t')[-1].split('\\')[0]
-		output = output.split("/")
-		mashresult2 = int(output[0]) / int(output[1])
+		# asdf/fsadf/fff.fasta
+		file1pre = file1[0:file1.rfind('/')] + '_preprocessed/preprocessed_' + file1[file1.rfind('/') + 1:]
+		file2pre = file2[0:file2.rfind('/')] + '_preprocessed/preprocessed_' + file2[file2.rfind('/') + 1:]
+		# file1pre = file1.replace("/", "_preprocessed/preprocessed_")
+		# file2pre = file2.replace("/", "_preprocessed/preprocessed_")
 		x_mash_on_kfingers.append(calc)
+		mashresult2 = use_mash(file1pre, file2pre, 1000, 3,
+		                       "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*")
 		y_mash_on_kfingers.append(1 - abs(calc - mashresult2))
 
 	plt.title("Factorization: " + factorization + "; kfinger size: " + str(kfinger_size))
-	plt.axis([0, 1, 0, 1])
+	plt.axis([0, 1, 0, 1.05])
 	plt.xlabel("Similarità stringhe")
 	plt.ylabel("Similarità stimata")
 	plt.plot(x_mash_on_kmers, y_mash_on_kmers, "b.")
@@ -179,6 +172,8 @@ def grafico_mash_and_jaccard_with_varying_kfingers():
 
 		calc, estim = estimate_jaccard_difference_split(seq1, seq2, kmer_size, factorization, 3)
 		# print(calc, estim)
+
+		# mashresult1 = use_mash(file1, file2, sketchsize, kmer_size)
 
 		out = subprocess.Popen(["mash", "dist", file1, file2, "-s", str(sketchsize), "-k", str(kmer_size)],
 		                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
