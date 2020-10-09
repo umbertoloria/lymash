@@ -30,27 +30,20 @@ def stdout_output(kmer_size, similarity, prev_similarity=None):
 
 def jaccard_kmers_suite_main(action):
 	if action == 2:
-
 		from sequences.Sequence import FastaSequence
-
 		seq1 = FastaSequence(input("Tell me the first file> "))
 		seq2 = FastaSequence(input("Tell me the second file> "))
-
 		print('Comparing:', seq1.get_name(), 'with', seq2.get_name(), '\n')
-
 		progressing_jaccard_on_kmers(seq1.get_data(), seq2.get_data(), 10, stdout_output)
-
 	elif action == 3:
-
 		from sequences.Sequence import FastaSequence
 		from itertools import combinations
-
 		files = input_files()
-
 		kmer_size = input("Tell me the kmer size (usually 21)> ")
 		kmer_size = 21 if kmer_size == "" else int(kmer_size)
-
 		sequences = [FastaSequence(file) for file in files]
 		for seq1, seq2 in combinations(sequences, 2):
 			monitor_jaccard_on_kmers_with_sequences(seq1, seq2, kmer_size,
 			                                        stdout_monitor_jaccard_on_kmers_output_function)
+	else:
+		return False

@@ -9,6 +9,8 @@ from sequences.Sequence import FastaSequence
 def jaccard_kfingers_suite_main(action):
 	if action == 4:
 		great_estimation()
+	else:
+		return False
 
 
 def great_estimation():
