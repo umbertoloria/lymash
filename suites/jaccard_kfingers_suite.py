@@ -7,7 +7,7 @@ from sequences.Sequence import FastaSequence
 
 
 def jaccard_kfingers_suite_main(action):
-	if action == 4:
+	if action == 3:
 		great_estimation()
 	else:
 		return False
@@ -45,7 +45,7 @@ def great_estimation():
 
 	# Exporters
 	csv_exporter = get_csv_exporter(dirname)
-	grafico_exporter = get_grafico_exporter()
+	grafico_exporter = get_grafico_exporter
 
 	# Summary
 	summary = open(dirname + "/summary.txt", "w")

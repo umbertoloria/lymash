@@ -29,13 +29,13 @@ def stdout_output(kmer_size, similarity, prev_similarity=None):
 
 
 def jaccard_kmers_suite_main(action):
-	if action == 2:
+	if action == 1:
 		from sequences.Sequence import FastaSequence
 		seq1 = FastaSequence(input("Tell me the first file> "))
 		seq2 = FastaSequence(input("Tell me the second file> "))
 		print('Comparing:', seq1.get_name(), 'with', seq2.get_name(), '\n')
 		progressing_jaccard_on_kmers(seq1.get_data(), seq2.get_data(), 10, stdout_output)
-	elif action == 3:
+	elif action == 2:
 		from sequences.Sequence import FastaSequence
 		from itertools import combinations
 		files = input_files()

@@ -9,11 +9,11 @@ from main_estimate_jaccard import estimate_jaccard_difference_split
 
 
 def mash_interfacing_suite_main(action):
-	if action == 5:
+	if action == 4:
 		preprocess_directory()
-	elif action == 7:
+	elif action == 5:
 		grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset()
-	elif action == 8:
+	elif action == 6:
 		grafico_mash_and_jaccard_with_varying_kfingers()
 	else:
 		return False

@@ -149,18 +149,6 @@ def get_csv_exporter(dirname):
 def get_grafico_exporter(data: JaccardFactResult):
 	import matplotlib.pyplot as plt
 	plt.figure(num=None, figsize=(15, 10), dpi=80, facecolor="w", edgecolor="k")
-
-	'''
-	PLOT
-	for factorization in FACTORIZATIONS:
-		x = []
-		y = []
-		ests = data.get_estimated_jaccard_from_factorization(factorization)
-		for (split, window_size), value in ests.items():
-			x.append(factorization)
-			y.append(1 - abs(value["accuracy"]))
-		plt.plot(x, y, "b.")
-	'''
 	values = []
 	for factorization in FACTORIZATIONS:
 		val = 0
@@ -176,30 +164,6 @@ def get_grafico_exporter(data: JaccardFactResult):
 
 	plt.xlabel("Fattorizzazioni")
 	plt.ylabel("Precisione (oracolo: " + str(data.get_calculated_jaccard(kmer_size)) + ")")
-	'''
-	plt.legend(["Mash " + str(kmer_size) + "-mer",
-	            "Jaccard " + str(kfinger_size) + "-finger ",
-	            "Mash " + str(kfinger_size) + "-finger",
-	            "Mash " + str(kfinger_size + 1) + "-finger",
-	            "Mash " + str(kfinger_size + 2) + "-finger"])
-	'''
 	plt.title(graphname)
 	plt.grid()
 	plt.show()
-
-
-# FIXME: ???
-'''
-def export_stdout(data: JaccardFactResult):
-	kmer_size = 21
-
-	print("Deterministicly calculated (kmer size %3d): %10.9f" % (kmer_size, data.get_calculated_jaccard(kmer_size)))
-	closest = 1
-	for d in data.get_estimated_jaccard_from_factorization("cfl"):
-		diff = d['accuracy']
-		if abs(closest) > abs(diff):
-			closest = abs(diff)
-			print("( %3d - %2d ) %10.9f   (%5.4f) ***" % (d['split'], d['window size'], d['estimation'], d['accuracy']))
-		else:
-			print("( %3d - %2d ) %10.9f   (%5.4f)" % (d['split'], d['window size'], d['estimation'], d['accuracy']))
-'''
