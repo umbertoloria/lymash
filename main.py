@@ -18,7 +18,6 @@ if __name__ == "__main__":
 	print("")
 	print("MASH INTERFACING")
 	print("5: Preprocess all the files in a directory (only short reads)")  # TODO:only short_reads???
-	# print("6: Encode in ASCII the fingers of two FASTA files")
 	print("7: Graph with MASH on k-mers and k-fingers (on preprocessed dataset)")
 	print("8: Graph with MASH and only-Jaccard on k-mers and varying k-fingers")
 	print("9: Crea dataset di long long reads")
@@ -78,3 +77,4 @@ if __name__ == "__main__":
 
 	else:
 		print("Goodbye...️")
+# TODO: cancellare cartella DSA? E quali altre?

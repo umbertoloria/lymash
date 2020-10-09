@@ -90,7 +90,6 @@ while 1:
 				max = int(w)
 
 	use_super_fp = True
-	y = 0
 	for i in range(len(files) - 1):
 		file1 = files[i]
 		file2 = files[i + 1]
@@ -100,11 +99,6 @@ while 1:
 		calc = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
 		estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
 		# print(calc, estim)
-		if abs(calc - estim) > 0.30:
-			y += 1
-	print(y)
 	print("il max è {} ".format(max))
-	if y <= 900 and max < 500:
+	if max < 500:
 		break
-
-print(y)

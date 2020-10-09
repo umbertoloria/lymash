@@ -1,5 +1,5 @@
 import os
-from factorization import get_factors, get_fingers_after_split, subdivide
+from factorization import get_factors
 from files_manager import input_files
 from lyndon.utils import _complement
 from sequences.Sequence import FastaSequence
@@ -12,8 +12,6 @@ from main_estimate_jaccard import estimate_jaccard_difference_split
 def mash_interfacing_suite_main(action):
 	if action == 5:
 		preprocess_directory()
-	# elif action == 6:
-	# 	encode_fingerprints_in_ascii()
 	elif action == 7:
 		grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset()
 	elif action == 8:
@@ -23,90 +21,41 @@ def mash_interfacing_suite_main(action):
 
 
 def preprocess_directory():
-	dir = input("Tell me the directory with the file to preprocess> ")
+	directory = input("Tell me the directory with the file to preprocess> ")
 
 	factorization = "cfl_icfl_comb"
 	# input("Tell me the algorithm for factoring\n   (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
 
-	use_super_fp = input("Tell me if you want the fingerprint to have [...-0-rev_compls] [Y/n]> ")
+	use_super_fp = input("Tell me if you want to use the super-fingerprint [Y/n]> ")
 	use_super_fp = (use_super_fp == "Y" or use_super_fp == "y" or use_super_fp == "")
 
-	alf = " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
-
-	if not os.path.isdir(dir + "_preprocessed"):
-		os.mkdir(dir + "_preprocessed")
-	for root, dirs, filepaths in os.walk(dir):
-		for filepath in filepaths:
-			if filepath.endswith(".fasta"):
-				print(filepath)
-				seq = FastaSequence(dir + "/" + filepath)
-
-				fingerprint = [len(f) for f in get_factors(factorization, seq.get_data())]
-				file = open(os.path.join(dir + "_preprocessed", "preprocessed_" + filepath), "w")
-				file.write(">" + seq.get_title() + " preprocessed encoding lyndon fact lengths with ascii code\n")
-				print(fingerprint)
-				for finger in fingerprint:
-					file.write(alf[finger])
-
-				if use_super_fp:
-					comp_fingerprint = [len(f) for f in get_factors(factorization, _complement(seq.get_data()))]
-					print(comp_fingerprint)
-					file.write("#")
-					for finger in comp_fingerprint:
-						file.write(alf[finger])
-				file.close()
+	alf = "#0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
 
 
-'''
-def encode_fingerprints_in_ascii():
-	file1 = input("Tell me the first FASTA filepath to compare> ")
-	file2 = input("Tell me the second FASTA filepath to compare> ")
-	factorization = input(
-		"Tell me the algorithm for factoring\n (cfl,icfl,cfl_icfl,cfl_comb,icfl_comb,cfl_icfl_comb)> ")
-	subdivision = int(input("Tell me the subdivision lenght (max 200 for ASCII sake)> "))
-
-	def get_codified_factors(a, b, split):
-		a_factors_lengths = get_fingers_after_split(factorization, a, split)
-		b_factors_lengths = get_fingers_after_split(factorization, b, split)
-		alf = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		lengths = list(set(a_factors_lengths).union(set(b_factors_lengths)))
-		lengths.sort()
-		# print("lunghezze veramente usate:", len(lengths))
-		# print(a_factors_lengths)
-		a_translated_factors = ""
-		for length in a_factors_lengths:
-			a_translated_factors += alf[lengths.index(length)]
-		# print(b_factors_lengths)
-		b_translated_factors = ""
-		for length in b_factors_lengths:
-			b_translated_factors += alf[lengths.index(length)]
-		return a_translated_factors, b_translated_factors
-
-	seq1 = FastaSequence(file1)
-	seq2 = FastaSequence(file2)
-
-	print("Translating and comparing:", file1, "with", file2, "using Mash")
-	print(file1, "'s title:", seq1.get_title())
-	print(file2, "'s title:", seq2.get_title())
-
-	a, b = get_codified_factors(seq1.get_data(), seq2.get_data(), subdivision)
-
-	af = open(file1 + ".translated", "w")
-	af.write(seq1.get_title())
-	af.write("\n")
-	for part in subdivide(a, 70):
-		af.write(part)
-		af.write("\n")
-	af.close()
-
-	bf = open(file2 + ".translated", "w")
-	bf.write(seq2.get_title())
-	bf.write("\n")
-	for part in subdivide(b, 70):
-		bf.write(part)
-		bf.write("\n")
-	bf.close()
-'''
+	files = os.listdir(directory)
+	files.sort()
+	for file in files:
+		if file.endswith(".fasta"):
+			print(file)
+			seq = FastaSequence(directory + "/" + file)
+			fingerprint = [len(f) for f in get_factors(factorization, seq.get_data())]
+			if use_super_fp:
+				fingerprint += [0]
+				fingerprint += [len(f) for f in get_factors(factorization, _complement(seq.get_data()))]
+			if max(fingerprint) >= len(alf):
+				print('   la fingerprint non può essere codificata mediante la ristretta porzione di ASCII predisposta')
+				continue
+			if not os.path.isdir(directory + "_preprocessed"):
+				os.mkdir(directory + "_preprocessed")
+			savefile = open(directory + "_preprocessed/preprocessed_" + file, "w")
+			savefile.write(">\'" + seq.get_title() + "\' preprocessed encoding Lyndon ")
+			if use_super_fp:
+				savefile.write("super-")
+			savefile.write("fingerprint with ASCII code\n")
+			for finger in fingerprint:
+				savefile.write(alf[finger])
+			savefile.write('\n')
+			savefile.close()
 
 
 def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
