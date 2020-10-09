@@ -1,9 +1,7 @@
 from collections import defaultdict
 from sequences.Sequence import Sequence
 from factorization import get_fingers_after_split
-from jaccard import jaccard
-from sliding_windows import ksliding
-from traditional_technique import jaccard_on_kmers
+from traditional_technique import jaccard, ksliding, jaccard_on_kmers
 
 FACTORIZATIONS = ["cfl", "icfl", "cfl_icfl", "cfl_comb", "icfl_comb", "cfl_icfl_comb"]
 
@@ -76,10 +74,7 @@ class JaccardFactResult:
 		return self.__calculations[kmer_size]
 
 	def add_estimated_jaccard(self, factorization: str, split: int, window_size: int, jacc: float, accuracy: float):
-		self.__estimations[factorization][(split, window_size)] = {
-			"estimation": jacc,
-			"accuracy": accuracy
-		}
+		self.__estimations[factorization][(split, window_size)] = {"estimation": jacc, "accuracy": accuracy}
 
 	def get_factorizations_used(self):
 		return self.__estimations.keys()

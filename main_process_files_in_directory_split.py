@@ -3,6 +3,8 @@ from factorization import get_fingers_after_split
 from lyndon.utils import _complement
 from sequences.Sequence import FastaSequence
 
+# TODO: another single main
+
 if __name__ == '__main__':
 	dir = input("Tell me the directory with the file to preprocess> ")
 	factorization = "cfl_icfl_comb"

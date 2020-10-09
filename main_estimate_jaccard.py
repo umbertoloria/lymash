@@ -1,14 +1,10 @@
 from sequences.Sequence import Sequence
-from sliding_windows import ksliding
-from jaccard import jaccard
-from traditional_technique import jaccard_on_kmers
-from factorization import get_fingers_after_split
+from traditional_technique import jaccard, ksliding, jaccard_on_kmers
+from factorization import get_factors, get_fingers_after_split
+from lyndon.utils import _complement
 
 
 def estimate_jaccard(seq1: Sequence, seq2: Sequence, factorization: str, kfinger_size: int, use_super_fp: bool = False):
-	from factorization import get_factors
-	from lyndon.utils import _complement
-
 	# Create (super-)fingerprints
 	afp = [len(f) for f in get_factors(factorization, seq1.get_data())]
 	if use_super_fp:

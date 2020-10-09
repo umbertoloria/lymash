@@ -3,6 +3,8 @@ from sequences import Sequence
 from traditional_technique import jaccard_on_kmers
 
 
+# TODO: another single main
+
 def create_dataset_fromread(seq: Sequence.FastaSequence, n):
 	# create a dataset of n short reads from one long read
 	start = 1
@@ -98,7 +100,7 @@ while 1:
 		seq2 = FastaSequence(file2)
 		calc = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
 		estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
-		# print(calc, estim)
+	# print(calc, estim)
 	print("il max è {} ".format(max))
 	if max < 500:
 		break

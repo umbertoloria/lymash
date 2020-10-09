@@ -1,6 +1,7 @@
 import os
 
 
+# TODO: creare una bella libreria per gestire tutti gli input (anche l'input di UNA SOLA directory)
 def input_files():
 	print("Tell me files to compare ")
 	files = []

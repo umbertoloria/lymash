@@ -1,7 +1,27 @@
-from sliding_windows import ksliding
-from jaccard import jaccard
 from sequences.Sequence import Sequence
 from datetime import datetime
+
+
+def jaccard(a, b, verboose=False):
+	intersection = len(a.intersection(b))
+	union = len(a.union(b))
+	if verboose:
+		print("Jaccard: ", intersection, '/', union)
+	return intersection / union
+
+
+def ksliding(source, window_size, string=True):
+	offset = 0
+	windows = []
+	while offset + window_size <= len(source):
+		window = source[offset:offset + window_size]
+		if not string:
+			if 0 not in window:
+				windows.append(window)
+		else:
+			windows.append(window)
+		offset += 1
+	return windows
 
 
 def jaccard_on_kmers(str1, str2, k):
