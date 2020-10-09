@@ -67,7 +67,12 @@ def use_mash(filepath1: str, filepath2: str, sketch_size: int = 0, window_size: 
 		args_of_call += ['-z', alphabet]
 	out = subprocess.Popen(args_of_call, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	stdout, stderr = out.communicate()
-	output = str(stdout).split('t')[-1].split('\\')[0]
+	stdout = str(stdout)
+	if 'ERROR' in stdout:
+		return -1
+	if 'WARNING' in stdout:
+		stdout = stdout[0:stdout.rfind('WARNING') - 1]
+	output = stdout.split('t')[-1].split('\\')[0]
 	output = output.split("/")
 	mashresult = int(output[0]) / int(output[1])
 	return mashresult
@@ -119,6 +124,7 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 		x_mash_on_kfingers.append(calc)
 		mashresult2 = use_mash(file1pre, file2pre, 1000, 3,
 		                       "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*")
+		# TODO: optimite alf var
 		y_mash_on_kfingers.append(1 - abs(calc - mashresult2))
 
 	plt.title("Factorization: " + factorization + "; kfinger size: " + str(kfinger_size))
@@ -133,6 +139,25 @@ def grafico_mash_on_kmers_and_kfingers_on_preprocessed_dataset():
 
 
 def grafico_mash_and_jaccard_with_varying_kfingers():
+	directory = input("Tell me the directory with normal files (corresponding preprocessed files will be figured)> ")
+	# files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
+	files = [directory + '/' + filename for filename in os.listdir(directory)]
+	files.sort()
+
+	kmer_size = input("Tell me the kmer size (21) > ")
+	kmer_size = 21 if kmer_size == "" else int(kmer_size)
+
+	factorization = input("Tell me the factorization (cfl_icfl_comb)")  # TODO: > si o no?
+	if factorization == "":
+		factorization = "cfl_icfl_comb"
+
+	kfinger_size = input("Tell me the kfinger sizes (3)")
+	kfinger_size = 4 if kfinger_size == "" else int(kfinger_size)
+
+	sketchsize = 1000
+
+	alf = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"
+
 	x_jaccard_on_4fingers = []
 	x_mash_on_kmers = []
 	x_mash_on_4fingers = []
@@ -145,113 +170,45 @@ def grafico_mash_and_jaccard_with_varying_kfingers():
 	y_mash_on_5fingers = []
 	y_mash_on_6fingers = []
 
-	files = input_files()
-
-	kmer_size = input("Tell me the kmer size (21) > ")
-	kmer_size = 21 if kmer_size == "" else int(kmer_size)
-
-	factorization = input("Tell me the factorization (cfl_icfl_comb)")  # TODO: > si o no?
-	if factorization == "":
-		factorization = "cfl_icfl_comb"
-
-	kfinger_size = input("Tell me the kfinger sizes (3)")
-	kfinger_size = 4 if kfinger_size == "" else int(kfinger_size)
-
-	# TODO: voleva sapere il total_max pure quì
-
-	sketchsize = 1000
-	files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
-
 	for i in range(len(files) - 1):
 		file1 = files[i]
 		file2 = files[i + 1]
-		print("{}%".format(i))
-		# print("Comparing", file1, "-", file2)
+		print("Comparing", file1, "-", file2)
 		seq1 = FastaSequence(file1)
 		seq2 = FastaSequence(file2)
 
 		calc, estim = estimate_jaccard_difference_split(seq1, seq2, kmer_size, factorization, 3)
-		# print(calc, estim)
-
-		# mashresult1 = use_mash(file1, file2, sketchsize, kmer_size)
-
-		out = subprocess.Popen(["mash", "dist", file1, file2, "-s", str(sketchsize), "-k", str(kmer_size)],
-		                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		# print(stdout)
-		# output = str(stdout).split('t')[-1].split('\\')[0]
-		# output = output.split("/")
-		# mashresult1 = int(output[0]) / int(output[1])
-		# print("mash kmer {}".format(mashresult1))
-		output = str(stdout).split("/" + str(sketchsize))[0].split("t")[-1]
-		mashresult1 = int(output) / sketchsize
-
-		file1pre = file1.replace("/", "_preprocessed/preprocessed_")
-		file2pre = file2.replace("/", "_preprocessed/preprocessed_")
-		out = subprocess.Popen(
-			["mash", "dist", file1pre, file2pre, "-s", str(sketchsize), "-k", str(kfinger_size), "-z",
-			 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
-			stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		# print(stdout)
-		# print(stderr)
-		output = str(stdout).split("/" + str(sketchsize))[0].split("t")[-1]
-		try:
-			mashresult2 = int(output) / sketchsize
-		except ValueError:
-			continue
-
-		out = subprocess.Popen(
-			["mash", "dist", file1pre, file2pre, "-s", str(sketchsize), "-k", str(kfinger_size + 1), "-z",
-			 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
-			stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		# print(stdout)
-		# print(stderr)
-		output = str(stdout).split('t')[-1].split('\\')[0]
-		output = output.split("/")
-		try:
-			mashresult3 = int(output[0]) / int(output[1])
-		except ValueError:
-			continue
-
-		out = subprocess.Popen(
-			["mash", "dist", file1pre, file2pre, "-s", str(sketchsize), "-k", str(kfinger_size + 2), "-z",
-			 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*"],
-			stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stderr = out.communicate()
-		# print(stdout)
-		# print(stderr)
-		output = str(stdout).split('t')[-1].split('\\')[0]
-		output = output.split("/")
-		try:
-			mashresult4 = int(output[0]) / int(output[1])
-		except ValueError:
-			continue
-		# print("mash kfing {}".format(mashresult2))
-
-		# x_mash_on_kmers.append(mashresult1)
-		# y_mash_on_kmers.append(abs(mashresult1-mashresult2))
-
-		x_mash_on_kmers.append(calc)
-		y_mash_on_kmers.append(1 - abs(mashresult1 - calc))
-
-		x_mash_on_4fingers.append(calc)
-		y_mash_on_4fingers.append(1 - abs(mashresult2 - calc))
-
 		x_jaccard_on_4fingers.append(calc)
 		y_jaccard_on_4fingers.append(1 - abs(estim - calc))
 
+		mashresult1 = use_mash(file1, file2, sketchsize, kmer_size)
+		x_mash_on_kmers.append(calc)
+		y_mash_on_kmers.append(1 - abs(mashresult1 - calc))
+
+		file1pre = file1.replace("/", "_preprocessed/preprocessed_")
+		file2pre = file2.replace("/", "_preprocessed/preprocessed_")
+
+		mashresult2 = use_mash(file1pre, file2pre, sketchsize, kfinger_size, alf)
+		if mashresult2 == -1:
+			continue
+		x_mash_on_4fingers.append(calc)
+		y_mash_on_4fingers.append(1 - abs(mashresult2 - calc))
+
+		mashresult3 = use_mash(file1pre, file2pre, sketchsize, kfinger_size + 1, alf)
+		if mashresult3 == -1:
+			continue
 		x_mash_on_5fingers.append(calc)
 		y_mash_on_5fingers.append(1 - abs(mashresult3 - calc))
 
+		mashresult4 = use_mash(file1pre, file2pre, sketchsize, kfinger_size + 2, alf)
+		if mashresult4 == -1:
+			continue
 		x_mash_on_6fingers.append(calc)
 		y_mash_on_6fingers.append(1 - abs(mashresult4 - calc))
 
 	plt.figure(num=None, figsize=(15, 10), dpi=80, facecolor="w", edgecolor="k")
 	plt.title("Factorization: " + factorization + "; kfinger size: " + str(kfinger_size) + "; sketch size: " + str(
 		sketchsize))
-	# plt.axis([0, 1, 0, 1])
 	plt.xlabel("Similarità stringhe")
 	plt.ylabel("Precisione")
 	plt.plot(x_mash_on_kmers, y_mash_on_kmers, "b.")
@@ -259,10 +216,8 @@ def grafico_mash_and_jaccard_with_varying_kfingers():
 	plt.plot(x_mash_on_4fingers, y_mash_on_4fingers, "y*")
 	plt.plot(x_mash_on_5fingers, y_mash_on_5fingers, "g*")
 	plt.plot(x_mash_on_6fingers, y_mash_on_6fingers, "r*")
-	plt.legend(["Mash " + str(kmer_size) + "-mer",
-	            "Jaccard " + str(kfinger_size) + "-finger ",
-	            "Mash " + str(kfinger_size) + "-finger",
-	            "Mash " + str(kfinger_size + 1) + "-finger",
+	plt.legend(["Mash " + str(kmer_size) + "-mer", "Jaccard " + str(kfinger_size) + "-finger ",
+	            "Mash " + str(kfinger_size) + "-finger", "Mash " + str(kfinger_size + 1) + "-finger",
 	            "Mash " + str(kfinger_size + 2) + "-finger"])
 	plt.grid()
 	plt.show()

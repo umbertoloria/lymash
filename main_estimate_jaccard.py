@@ -48,6 +48,6 @@ def estimate_jaccard_difference_split(seq1: Sequence, seq2: Sequence, kmer_size:
 	a_fingerprint = set(ksliding(a_factors_lengths, kfinger_size, False))
 	b_fingerprint = set(ksliding(b_factors_lengths, kfinger_size, False))
 
-	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint, True)
+	jaccard_estimated = jaccard(a_fingerprint, b_fingerprint, False)
 
 	return jaccard_calculated, jaccard_estimated
