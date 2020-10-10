@@ -1,9 +1,10 @@
 from collections import defaultdict
+from lyndon.utils import _complement
 from sequences.Sequence import Sequence
-from factorization import get_fingers_after_split
+from factorization import get_factors, get_fingers_after_split
 from traditional_technique import jaccard, ksliding, jaccard_on_kmers
 
-FACTORIZATIONS = ["cfl", "icfl", "cfl_icfl", "cfl_comb", "icfl_comb", "cfl_icfl_comb"]
+FACTORIZATIONS = ['cfl', 'icfl', 'cfl_icfl', 'cfl_comb', 'icfl_comb', 'cfl_icfl_comb']
 
 
 def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: int, tolerance: float, *out_funcs):
@@ -15,8 +16,8 @@ def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: i
 	data.add_calculated_jaccard(kmer_size, jaccard_calculated)
 
 	result = {
-		"jaccard": jaccard_calculated,
-		"factorizations": {}
+		'jaccard': jaccard_calculated,
+		'factorizations': {}
 	}
 
 	for factorization in FACTORIZATIONS:
@@ -26,8 +27,6 @@ def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: i
 
 			a_factors_lengths = get_fingers_after_split(factorization, seq1.get_data(), split)
 			b_factors_lengths = get_fingers_after_split(factorization, seq2.get_data(), split)
-			# print("fattori stringa 1 con  {} {} : {} ".format(factorization, split, a_factors_lengths))
-			# print("fattori stringa 2 con {} {} : {} ".format(factorization, split, b_factors_lengths))
 
 			for window_size in range(3, 9):  # 3-8
 				if window_size > len(a_factors_lengths) or window_size > len(b_factors_lengths):
@@ -41,12 +40,26 @@ def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: i
 					sopravvissuti.append((split, window_size))
 					data.add_estimated_jaccard(factorization, split, window_size, jaccard_estimated, diff)
 
-		result["factorizations"][factorization] = sopravvissuti
+		result['factorizations'][factorization] = sopravvissuti
 
 	for out_func in out_funcs:
 		out_func(data)
 
 	return result
+
+
+def create_fingerprint(text, factorization: str, use_super_fp: bool, split: int = 0):
+	if split == 0:
+		fingerprint = [len(f) for f in get_factors(factorization, text)]
+	else:
+		fingerprint = get_fingers_after_split(factorization, text, split)
+	if use_super_fp:
+		fingerprint += [0]
+		if split == 0:
+			fingerprint += [len(f) for f in get_factors(factorization, _complement(text))]
+		else:
+			fingerprint += get_fingers_after_split(factorization, _complement(text), split)
+	return fingerprint
 
 
 class JaccardFactResult:
@@ -74,7 +87,7 @@ class JaccardFactResult:
 		return self.__calculations[kmer_size]
 
 	def add_estimated_jaccard(self, factorization: str, split: int, window_size: int, jacc: float, accuracy: float):
-		self.__estimations[factorization][(split, window_size)] = {"estimation": jacc, "accuracy": accuracy}
+		self.__estimations[factorization][(split, window_size)] = {'estimation': jacc, 'accuracy': accuracy}
 
 	def get_factorizations_used(self):
 		return self.__estimations.keys()
@@ -85,9 +98,9 @@ class JaccardFactResult:
 
 def get_csv_exporter(dirname):
 	def export_csv(data: JaccardFactResult):
-		fixed = "___ split,___ window size,___ estimate,___ accuracy,"
+		fixed = '___ split,___ window size,___ estimate,___ accuracy,'
 
-		csvname = data.get_sequence1().get_name() + "-" + data.get_sequence2().get_name() + ".csv"
+		csvname = data.get_sequence1().get_name() + '-' + data.get_sequence2().get_name() + '.csv'
 
 		kmer_size = 21
 
@@ -97,13 +110,13 @@ def get_csv_exporter(dirname):
 			ests = data.get_estimated_jaccard_from_factorization(factorization)
 			for (split, window_size), value in ests.items():
 				estimations[factorization].append(
-					[str(split), str(window_size), str(value["estimation"]), str(value["accuracy"])])
+					[str(split), str(window_size), str(value['estimation']), str(value['accuracy'])])
 
-		with open(dirname + "/" + csvname, 'w') as csv:
-			csv.write("kmer size,result,")
+		with open(dirname + '/' + csvname, 'w') as csv:
+			csv.write('kmer size,result,')
 			for factorization in FACTORIZATIONS:
-				csv.write(fixed.replace("___", factorization))
-			csv.write("\n")
+				csv.write(fixed.replace('___', factorization))
+			csv.write('\n')
 
 			i = {}
 			for factorization in FACTORIZATIONS:
@@ -112,13 +125,13 @@ def get_csv_exporter(dirname):
 			for factorization in FACTORIZATIONS:
 				lens[factorization] = len(estimations[factorization])
 
-			csv.write(str(kmer_size) + "," + str(data.get_calculated_jaccard(kmer_size)) + ",")
+			csv.write(str(kmer_size) + ',' + str(data.get_calculated_jaccard(kmer_size)) + ',')
 			for factorization in FACTORIZATIONS:
 				if lens[factorization] > 0:
-					csv.write(",".join(estimations[factorization][0]) + ",")
+					csv.write(','.join(estimations[factorization][0]) + ',')
 				else:
-					csv.write(",,,,")
-			csv.write("\n")
+					csv.write(',,,,')
+			csv.write('\n')
 
 			while True:
 				stop = True
@@ -128,7 +141,7 @@ def get_csv_exporter(dirname):
 						break
 				if stop:
 					break
-				csv.write(",,")
+				csv.write(',,')
 				for factorization in FACTORIZATIONS:
 					if i[factorization] < lens[factorization]:
 						csv.write(",".join(estimations[factorization][i[factorization]]) + ",")

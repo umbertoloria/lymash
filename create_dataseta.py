@@ -14,17 +14,17 @@ def create_dataset_fromread(seq: Sequence.FastaSequence, n):
 	name = seq.get_name()
 	title = seq.get_title()
 
-	dirname = "dataset_" + name.split(".")[0]
+	dirname = 'dataset_' + name.split('.')[0]
 	if not os.path.isdir(dirname):
 		os.mkdir(dirname)
 
 	for i in range(1, n + 1):
-		file = open(os.path.join(dirname + "/" + str(i) + ".fasta"), "w")
-		file.write(title + " #short read generated\n")
+		file = open(os.path.join(dirname + '/' + str(i) + '.fasta'), 'w')
+		file.write(title + ' #short read generated\n')
 
 		for x in range(lenght):
 			file.write(read[start + x])
-		file.write("\n")
+		file.write('\n')
 		rand = random.randrange(250, lenght)
 		start = start + lenght - rand
 	print(start)
@@ -34,7 +34,7 @@ def create_dataset_fromread(seq: Sequence.FastaSequence, n):
 z = 0
 while 1:
 	z += 1
-	seq1 = Sequence.FastaSequence("in/300.fasta")
+	seq1 = Sequence.FastaSequence('in/300.fasta')
 	dirname = create_dataset_fromread(seq1, 100)
 
 	import os
@@ -45,30 +45,29 @@ while 1:
 	# CLI inputs
 	files = []
 	path = dirname
-	while path != "":
+	while path != '':
 		if not os.path.exists(path):
-			print("File o directory non esistente")
+			print('   File o directory non esistente')
 		elif os.path.isdir(path):
 			new_files = os.listdir(path)
 			new_files.sort()
 			for new_file in new_files:
-				new_file = path + "/" + new_file
+				new_file = path + '/' + new_file
 				if new_file not in files:
 					files.append(new_file)
 		else:
 			if path not in files:
 				files.append(path)
-		path = ""
+		path = ''
 
-	kmer_size = 16
-	kmer_size = 21 if kmer_size == "" else int(kmer_size)
+	kmer_size = 21 if kmer_size == '' else int(kmer_size)
 	print()
-	factorization = "cfl_icfl_comb"
-	if factorization == "":
-		factorization = "cfl_icfl_comb"
+	factorization = 'cfl_icfl_comb'
+	if factorization == '':
+		factorization = 'cfl_icfl_comb'
 	kfinger_size = 3
-	kfinger_size = 3 if kfinger_size == "" else int(kfinger_size)
-	files = sorted(files, key=lambda x: int(x.split(".")[0].split("/")[1]))
+	kfinger_size = 3 if kfinger_size == '' else int(kfinger_size)
+	files = sorted(files, key=lambda x: int(x.split('.')[0].split('/')[1]))
 
 	max = 0
 
@@ -95,12 +94,10 @@ while 1:
 	for i in range(len(files) - 1):
 		file1 = files[i]
 		file2 = files[i + 1]
-		# print("Comparing", file1, "-", file2)
 		seq1 = FastaSequence(file1)
 		seq2 = FastaSequence(file2)
 		calc = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
 		estim = estimate_jaccard(seq1, seq2, factorization, kfinger_size, use_super_fp)
-	# print(calc, estim)
-	print("il max è {} ".format(max))
+	print('il max è {} '.format(max))
 	if max < 500:
 		break

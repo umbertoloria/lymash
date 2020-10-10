@@ -12,6 +12,8 @@ def get_factors(factorization, text):
 	func = factorizations[factorization]
 	return tuple(func(text))
 
+# TODO: use cfl_max...
+# TODO: MERGE WITH NEW_COMBINED_TECHNIQUE.py
 
 def subdivide(text, cut_length):
 	i = 0
