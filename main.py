@@ -1,14 +1,15 @@
 #!/bin/env python3
 
+from itertools import combinations
+
 from files_manager import input_files_in_directory, input_factorization, input_files
+from sequences.Sequence import FastaSequence
 from suites.jaccard_kfingers_suite import great_estimation
 from suites.jaccard_kmers_suite import progressing_jaccard_on_kmers, stdout_output
 from suites.mash_interfacing_suite import preprocess_directory, \
 	show_plot_mash_on_kmers_and_kfingers_based_on_preprocessed_dataset, \
 	show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset
 from traditional_technique import monitor_jaccard_on_kmers_with_sequences, stdout_jaccard_on_kmers_output_function
-from sequences.Sequence import FastaSequence
-from itertools import combinations
 
 if __name__ == '__main__':
 	print('JACCARD ON K-MERS OR K-FINGERS')
@@ -17,7 +18,7 @@ if __name__ == '__main__':
 	print('3: Estimate Jaccard similarity (estimate on pairs of some files)')
 	print('')
 	print('MASH INTERFACING')
-	print('4: Preprocess all the files in a directory (only short reads)')
+	print('4: Preprocess all the files in a directory')
 	print('5: Graph with MASH on k-mers and k-fingers (on preprocessed dataset) for short reads')
 	print('6: Graph with MASH (and Jaccard) on k-mers and varying k-fingers (on preprocessed dataset) for long reads')
 	print('')
@@ -52,7 +53,9 @@ if __name__ == '__main__':
 		factorization = input_factorization()
 		use_super_fp = input('Tell me if you want to use the super-fingerprint [Y/n]> ')
 		use_super_fp = use_super_fp == 'Y' or use_super_fp == 'y' or use_super_fp == ''
-		preprocess_directory(files, factorization, use_super_fp)
+		split = input('Tell me the split of the reads to apply (suggested 100 for long reads, 0 skips the split) (0)> ')
+		split = 0 if split == '' else int(split)
+		preprocess_directory(files, factorization, use_super_fp, split)
 
 	elif action == 5:
 		files = input_files_in_directory('Tell me the dataset directory (that corresponds to the preprocessed dataset)')
@@ -67,7 +70,12 @@ if __name__ == '__main__':
 		factorization = input_factorization()
 		kfinger_size = input('Tell me the kfinger sizes to use on MASH (4)> ')
 		kfinger_size = 4 if kfinger_size == '' else int(kfinger_size)
-		show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset(files, kmer_size, factorization, kfinger_size)
+		use_super_fp = input('Tell me if you want to use the super-fingerprint [Y/n]> ')
+		use_super_fp = use_super_fp == 'Y' or use_super_fp == 'y' or use_super_fp == ''
+		split = input('Tell me the split of the (long) reads to apply (0 skips the split) (140)> ')
+		split = 140 if split == '' else int(split)
+		show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset(files, kmer_size, factorization, kfinger_size,
+		                                                                use_super_fp, split)
 
 	else:
 		print('Goodbye...️')

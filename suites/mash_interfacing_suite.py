@@ -1,13 +1,14 @@
 import os
-from new_combined_technique import create_fingerprint
+import subprocess
+
+import matplotlib.pyplot as plt
+
+from new_combined_technique import create_fingerprint, jaccard_on_kfingers
 from sequences.Sequence import FastaSequence
 from traditional_technique import jaccard_on_kmers
-import matplotlib.pyplot as plt
-import subprocess
-from main_estimate_jaccard import estimate_jaccard_difference_split
 
 
-def preprocess_directory(files: list, factorization: str, use_super_fp: bool):
+def preprocess_directory(files: list, factorization: str, use_super_fp: bool, split: int):
 	if len(files) == 0:
 		print('The directory can\'t be empty')
 		return
@@ -18,7 +19,7 @@ def preprocess_directory(files: list, factorization: str, use_super_fp: bool):
 	for file in files:
 		print(file)
 		seq = FastaSequence(file)
-		prepr = preprocess_string(seq.get_data(), factorization, use_super_fp)
+		prepr = preprocess_string(seq.get_data(), factorization, use_super_fp, split)
 		if prepr is not None:
 			savefile = open('_preprocessed/preprocessed_'.join(os.path.split(file)), 'w')
 			savefile.write('>\'' + seq.get_title() + '\' preprocessed encoding Lyndon ')
@@ -32,9 +33,9 @@ def preprocess_directory(files: list, factorization: str, use_super_fp: bool):
 			print('   La fingerprint non può essere codificata mediante la ristretta porzione di ASCII predisposta')
 
 
-def preprocess_string(text: str, factorization: str, use_super_fp: bool):
+def preprocess_string(text: str, factorization: str, use_super_fp: bool, split: int):
 	alf = '#0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*'
-	fingerprint = create_fingerprint(text, factorization, use_super_fp)
+	fingerprint = create_fingerprint(text, factorization, use_super_fp, split)
 	if max(fingerprint) < len(alf):
 		return ''.join([alf[f] for f in fingerprint])
 	else:
@@ -111,7 +112,7 @@ def show_plot_mash_on_kmers_and_kfingers_based_on_preprocessed_dataset(files: li
 
 
 def show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset(files: list, kmer_size: int, factorization: str,
-                                                                    kfinger_size: int):
+                                                                    kfinger_size: int, use_super_fp: bool, split: int):
 	alf = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*'
 	sketchsize = 1000
 
@@ -137,7 +138,8 @@ def show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset(files: list,
 		seq1 = FastaSequence(file1)
 		seq2 = FastaSequence(file2)
 
-		calc, estim = estimate_jaccard_difference_split(seq1, seq2, kmer_size, factorization, 3)
+		calc = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
+		estim = jaccard_on_kfingers(seq1.get_data(), seq2.get_data(), factorization, 3, use_super_fp, split)
 		x_jaccard_on_3fingers.append(calc)
 		y_jaccard_on_3fingers.append(1 - abs(estim - calc))
 

@@ -1,5 +1,6 @@
-from sequences.Sequence import Sequence
 from datetime import datetime
+
+from sequences.Sequence import Sequence
 
 
 def jaccard(a, b, verboose=False):
@@ -24,7 +25,7 @@ def ksliding(source, window_size, string=True):
 	return windows
 
 
-def jaccard_on_kmers(str1, str2, k):
+def jaccard_on_kmers(str1: str, str2: str, k: int):
 	return jaccard(set(ksliding(str1, k)), set(ksliding(str2, k)))
 
 

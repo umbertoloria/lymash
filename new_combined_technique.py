@@ -1,12 +1,41 @@
 from collections import defaultdict
+
 from lyndon.utils import _complement
 from sequences.Sequence import Sequence
-from factorization import get_factors, get_fingers_after_split
 from traditional_technique import jaccard, ksliding, jaccard_on_kmers
 
 FACTORIZATIONS = ['cfl', 'icfl', 'cfl_icfl', 'cfl_comb', 'icfl_comb', 'cfl_icfl_comb']
 
 
+def factorize(factorization, text, split=0):
+	from lyndon.factorization import cfl, icfl, cfl_icfl, d_cfl, d_icfl, d_cfl_icfl
+	factorizations = {
+		'cfl': cfl,
+		'icfl': icfl,
+		'cfl_icfl': cfl_icfl,
+		'cfl_comb': d_cfl,
+		'icfl_comb': d_icfl,
+		'cfl_icfl_comb': d_cfl_icfl
+	}
+	func = factorizations[factorization]
+	factors = []
+	if split == 0:
+		factors = func(text)
+	else:
+		for text_part in subdivide(text, split):
+			factors += func(text_part)
+	return tuple(factors)
+
+
+def jaccard_on_kfingers(str1: str, str2: str, factorization: str, k: int, use_super_fp: bool, split: int = 0):
+	afingerprint = tuple(create_fingerprint(str1, factorization, use_super_fp, split))
+	bfingerprint = tuple(create_fingerprint(str2, factorization, use_super_fp, split))
+	akfingers = set(ksliding(afingerprint, k, False))
+	bkfingers = set(ksliding(bfingerprint, k, False))
+	return jaccard(akfingers, bkfingers)
+
+
+# TODO: questa funzione non usa la super-fingerprint!
 def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: int, tolerance: float, *out_funcs):
 	data = JaccardFactResult()
 	data.set_sequence1(seq1)
@@ -15,25 +44,26 @@ def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: i
 	jaccard_calculated = jaccard_on_kmers(seq1.get_data(), seq2.get_data(), kmer_size)
 	data.add_calculated_jaccard(kmer_size, jaccard_calculated)
 
-	result = {
-		'jaccard': jaccard_calculated,
-		'factorizations': {}
-	}
+	result = {'jaccard': jaccard_calculated, 'factorizations': {}}
 
 	for factorization in FACTORIZATIONS:
 		sopravvissuti = []
 
 		for split in range(50, 301, 25):
 
-			a_factors_lengths = get_fingers_after_split(factorization, seq1.get_data(), split)
-			b_factors_lengths = get_fingers_after_split(factorization, seq2.get_data(), split)
+			a_normal_fingerprint = tuple([len(f) for f in factorize(factorization, seq1.get_data(), split)])
+			b_normal_fingerprint = tuple([len(f) for f in factorize(factorization, seq2.get_data(), split)])
 
 			for window_size in range(3, 9):  # 3-8
-				if window_size > len(a_factors_lengths) or window_size > len(b_factors_lengths):
+				if window_size > len(a_normal_fingerprint) or window_size > len(b_normal_fingerprint):
 					continue
-				a_fingerprint = set(ksliding(a_factors_lengths, window_size))
-				b_fingerprint = set(ksliding(b_factors_lengths, window_size))
-				jaccard_estimated = jaccard(a_fingerprint, b_fingerprint)
+				a_kfingers = set(ksliding(a_normal_fingerprint, window_size))
+				b_kfingers = set(ksliding(b_normal_fingerprint, window_size))
+				jaccard_estimated = jaccard(a_kfingers, b_kfingers)
+
+				# Instead of using the code below, we separate the fingerprint calculation from
+				# the kfingers extrapolation. This way we don't keep re-calculating it for every window_size value.
+				# jaccard_on_kfingers(seq1.get_data(), seq2.get_data(), factorization, window_size, False, split)
 
 				diff = jaccard_calculated - jaccard_estimated
 				if abs(diff) <= tolerance:
@@ -49,17 +79,22 @@ def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: i
 
 
 def create_fingerprint(text, factorization: str, use_super_fp: bool, split: int = 0):
-	if split == 0:
-		fingerprint = [len(f) for f in get_factors(factorization, text)]
-	else:
-		fingerprint = get_fingers_after_split(factorization, text, split)
+	fingerprint = [len(f) for f in factorize(factorization, text, split)]
 	if use_super_fp:
 		fingerprint += [0]
-		if split == 0:
-			fingerprint += [len(f) for f in get_factors(factorization, _complement(text))]
-		else:
-			fingerprint += get_fingers_after_split(factorization, _complement(text), split)
+		fingerprint += [len(f) for f in factorize(factorization, _complement(text), split)]
 	return fingerprint
+
+
+def subdivide(text, cut_length):
+	i = 0
+	divisions = []
+	while i + cut_length < len(text):
+		division = text[i:i + cut_length]
+		divisions.append(division)
+		i += cut_length
+	divisions.append(text[i:])
+	return divisions
 
 
 class JaccardFactResult:
