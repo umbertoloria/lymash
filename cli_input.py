@@ -1,5 +1,25 @@
 import os
 
+from sequences import FastaSequence
+
+
+def input_kmer_size(message: str = 'Tell me the k-mer size'):
+	return input_int_not_neg(message, 21)
+
+
+def input_fasta_sequence(message: str):
+	val = input(message + '> ')
+	while not os.path.isfile(val) or not val.endswith('.fasta'):
+		val = input('   invalid file> ')
+	return FastaSequence(val)
+
+
+def input_user_super_fp():
+	val = input('Tell me if you want to use the super-fingerprint [Y/n]> ').lower()
+	while val != 'y' and val != '' and val != 'n':
+		val = input('   enter \'y\' (or nothing) for yes, \'n\' for no> ')
+	return val != 'n'
+
 
 def input_float_from_zero_to_one(message: str, default: float = None):
 	num = input(message + (' (' + str(default) + ')' if default is not None else '') + '> ')
@@ -11,13 +31,6 @@ def input_float_from_zero_to_one(message: str, default: float = None):
 		num = input('   enter value in [0, 1]> ')
 
 
-def input_file(message: str, extension: str = ''):
-	val = input(message + '> ')
-	while not os.path.isfile(val) or not val.endswith(extension):
-		val = input('   invalid file> ')
-	return val
-
-
 def input_int_not_neg(message: str, default: int = None):
 	num = input(message + (' (' + str(default) + ')' if default is not None else '') + '> ')
 	while True:
@@ -26,13 +39,6 @@ def input_int_not_neg(message: str, default: int = None):
 		elif num.isdigit():
 			return int(num)
 		num = input('   enter some digits> ')
-
-
-def input_bool(message: str):
-	val = input(message + ' [Y/n]> ').lower()
-	while val != 'y' and val != '' and val != 'n':
-		val = input('   enter \'y\' (or nothing) for yes, \'n\' for no> ')
-	return val != 'n'
 
 
 def input_files_in_directory(message: str):

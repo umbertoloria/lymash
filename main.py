@@ -1,7 +1,6 @@
 #!/bin/env python3
 
 from cli_input import *
-from std_cli_inputs import *
 from suites.dataset_creation import *
 from suites.jaccard_kfingers_suite import *
 from suites.jaccard_kmers_suite import *
