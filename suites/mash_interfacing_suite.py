@@ -4,11 +4,16 @@ import subprocess
 import matplotlib.pyplot as plt
 
 from new_combined_technique import create_fingerprint, jaccard_on_kfingers
-from sequences.Sequence import FastaSequence
+from sequences import FastaSequence
 from traditional_technique import jaccard_on_kmers
 
 
 def preprocess_directory(files: list, factorization: str, use_super_fp: bool, split: int):
+	"""Creates a preprocessed directory containing preprocessed files related to the specified files. A preprocessed
+	file is a (improper, since the alphabet is not the standard one) FASTA file containig an encoded fingerprint of the
+	related normal file. The model of the used fingerprint is defined by the 'factorization', 'use_super_fp' and 'split'
+	parameters."""
+
 	if len(files) == 0:
 		print('The directory can\'t be empty')
 		return
@@ -63,12 +68,11 @@ def use_mash(filepath1: str, filepath2: str, sketch_size: int = 0, window_size: 
 
 
 def show_plot_mash_on_kmers_and_kfingers_based_on_preprocessed_dataset(files: list, kmer_size: int):
-	"""
-	Viene creato un grafico comparativo di MASH sui files normali (che quindi li divide in k-mers) e
-		MASH sui file preprocessed (i cui k-mers sono k-fingers delle reads iniziali)
-	files: [filepath1, ...] tutti files di un dataset ci sui esiste il suo dataset preprocessato
-	kmer_size: la lunghezza dei k-mers presi da MASH nelle stringhe non preprocessate
-	"""
+	"""This function creates a plot containing comparative results using MASH on normal files (dividing them in k-mers)
+	and preprocessed files (dividing them in k-mers of an encoded fingerprint, actually k-fingers). The 'files'
+	parameter contains filepaths of the normal files (of which already exists a preprocessed counterpart). The length of
+	the (actual) k-mers is defined by the 'kmer_size' parameter. This function should be used on an already preprocessed
+	short reads dataset only."""
 
 	x_mash_on_kmers = []
 	y_mash_on_kmers = []
@@ -111,8 +115,13 @@ def show_plot_mash_on_kmers_and_kfingers_based_on_preprocessed_dataset(files: li
 	plt.show()
 
 
-def show_plot_mash_jaccard_on_varying_kfingers_preprocessed_dataset(files: list, kmer_size: int, factorization: str,
-                                                                    kfinger_size: int, use_super_fp: bool, split: int):
+def show_plot_mash_jaccard_varying_kfingers(files: list, kmer_size: int, factorization: str, kfinger_size: int,
+                                            use_super_fp: bool, split: int):
+	"""Very similar to the 'show_plot_mash_on_kmers_and_kfingers_based_on_preprocessed_dataset' function, but unlike
+	that, this should be used on an already preprocessed long reads dataset. Multiple k-fingers length will be used
+	(precisely, kfinger_size, kfinger_size+1 and kfinger_size+2). In addition to the MASH single k-mers and multiple
+	k-fingers usages, it will be also calculated the Jaccard similarity on k-fingers (on size 'kfinger_size' only)."""
+
 	alf = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZàèìòù%^-+:_çé!?£$§°*'
 	sketchsize = 1000
 

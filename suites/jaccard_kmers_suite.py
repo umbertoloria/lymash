@@ -1,13 +1,17 @@
 from traditional_technique import jaccard_on_kmers
 
 
-def progressing_jaccard_on_kmers(str1, str2, max_zero_similarities_before_stop, on_demand_output_function):
+def progressing_jaccard_on_kmers(str1, str2, max_dissimilarities, on_demand_output_function):
+	"""This function compares two strings using Jaccard similarity on k-mers. The k is incremental (starting from 1).
+	Stops when the last 'max_dissimilarities' k resulted in 0-similarity. This basically happens when files have no
+	k-mers in common."""
+
 	kmer_size = 1
 	p = jaccard_on_kmers(str1, str2, kmer_size)
 	on_demand_output_function(kmer_size, p)
 	kmer_size += 1
 	last_zero_similarities_count = 0
-	while last_zero_similarities_count < max_zero_similarities_before_stop:
+	while last_zero_similarities_count < max_dissimilarities:
 		j = jaccard_on_kmers(str1, str2, kmer_size)
 		if p == 0:
 			last_zero_similarities_count += 1

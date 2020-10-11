@@ -1,11 +1,16 @@
 import os
 from collections import defaultdict
 from itertools import combinations
+
 from new_combined_technique import get_csv_exporter, get_grafico_exporter, new_combined_technique_analyzer
-from sequences.Sequence import FastaSequence
+from sequences import FastaSequence
 
 
 def great_estimation(files: list, kmer_size: int, tolerance: float):
+	"""Analyzes every pair of given files comparison calculation using Jaccard on k-fingers. Creates a .csv file for
+	every pair of files, and a summary.txt file that summarizes the results of all comparisons. Also, for every pair of
+	files, opens a comparison plot showing the comparisons survived to the 'tolerance' filter."""
+
 	dirname = []
 	for file in files:
 		file = os.path.basename(file)

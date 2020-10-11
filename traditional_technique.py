@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sequences.Sequence import Sequence
+from sequences import Sequence
 
 
 def jaccard(a, b, verboose=False):

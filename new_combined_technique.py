@@ -1,7 +1,8 @@
 from collections import defaultdict
 
 from lyndon.utils import _complement
-from sequences.Sequence import Sequence
+
+from sequences import Sequence
 from traditional_technique import jaccard, ksliding, jaccard_on_kmers
 
 FACTORIZATIONS = ['cfl', 'icfl', 'cfl_icfl', 'cfl_comb', 'icfl_comb', 'cfl_icfl_comb']
@@ -35,8 +36,20 @@ def jaccard_on_kfingers(str1: str, str2: str, factorization: str, k: int, use_su
 	return jaccard(akfingers, bkfingers)
 
 
-# TODO: questa funzione non usa la super-fingerprint!
 def new_combined_technique_analyzer(seq1: Sequence, seq2: Sequence, kmer_size: int, tolerance: float, *out_funcs):
+	"""This function compares two sequences using Jaccard similarity on k-fingers and a Split Technique. Every
+	similarity is calculated on its configuration (factorization, split, window_size) where:
+		* factorization:    is the used factorization method;
+		* split:            before the factorization, the sequences are splitted into many subsequences. Every
+							subsequence is 'split' long, except the last (that has 'split' as max length);
+		* window_size:      basically the k-fingers length.
+	On every similarity calculation (or every configuration, it's the same) is calculated the difference from the oracle
+	as well. The oracle is the Jaccard similarity on k-mers (k set by the 'kmer_size' parameter) of the two sequences.
+	The whole point is to analyze all the various combinations of factorization, split and window_size parameters in
+	order to (hoping to :] ) find the best way to estimate a good comparison using Jaccard on k-fingers (instead of
+	k-mers). After all comparison calculations, this function returns only the comparisons that are close to the oracle
+	by a factor defined by the 'tolerance' parameter."""
+
 	data = JaccardFactResult()
 	data.set_sequence1(seq1)
 	data.set_sequence2(seq2)

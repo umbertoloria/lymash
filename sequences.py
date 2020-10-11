@@ -1,18 +1,3 @@
-def _read_from_fasta(filepath):
-	f = open(filepath, 'r')
-	line = f.readline()
-	if line.endswith('\n'):
-		line = line[:-1]
-	title = line[1:]
-	read = ''
-	while line:
-		line = f.readline()
-		if line.endswith('\n'):
-			line = line[:-1]
-		read += line
-	return title, read
-
-
 class Sequence:
 
 	def get_name(self):
@@ -29,7 +14,20 @@ class FastaSequence(Sequence):
 
 	def __init__(self, fasta_path):
 		self.__name = fasta_path.split('/')[-1]
-		self.__title, self.__data = _read_from_fasta(fasta_path)
+		f = open(fasta_path, 'r')
+		line = f.readline()
+		if line.startswith('>'):
+			line = line[1:]
+		if line.endswith('\n'):
+			line = line[:-1]
+		self.__title = line
+		self.__data = ''
+		line = True
+		while line:
+			line = f.readline()
+			if line.endswith('\n'):
+				line = line[:-1]
+			self.__data += line
 
 	def get_name(self) -> str:
 		return self.__name
