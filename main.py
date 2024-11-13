@@ -1,13 +1,43 @@
 #!/bin/env python3
 
 from cli_input import *
+from lyndon.factorization import algs_dict
 from suites.dataset_creation import *
 from suites.jaccard_kfingers_suite import *
 from suites.jaccard_kmers_suite import *
 from suites.mash_interfacing_suite import *
 from traditional_technique import *
 
+
+def print_kmers_from_fasta_to_file_number(index, fact_alg_of_choice):
+	file_path_read = 'in/' + str(index) + '.fasta'
+	rr = open(file_path_read)
+	lines = rr.readlines()
+	content = ''
+	for i in range(1, len(lines)):
+		content += lines[i][:-1]
+	# kmers = algs_dict['cfl'](content)
+	kmers = algs_dict[fact_alg_of_choice](content)
+
+	file_path_write = 'out/' + str(index) + '-' + fact_alg_of_choice + '.txt'
+	ww = open(file_path_write, 'w', newline='\n')
+	for kmer in kmers:
+		ww.write(kmer + '\n')
+	ww.close()
+
+
+def main_manual():
+
+	for index in range(1, 11):
+		print_kmers_from_fasta_to_file_number(index, 'cfl')
+		print_kmers_from_fasta_to_file_number(index, 'icfl')
+
+	if True:
+		exit()
+
+
 if __name__ == '__main__':
+	main_manual()
 	print('JACCARD ON K-MERS OR K-FINGERS')
 	print('1: Calculate Jaccard similarity (exploring various k-mer size)')
 	print('2: Calculate Jaccard similarity (fixed k-mer size)')
@@ -28,7 +58,11 @@ if __name__ == '__main__':
 		seq2 = input_fasta_sequence('Tell me the second FASTA file')
 
 		print('Comparing:', seq1.get_name(), 'with', seq2.get_name())
+		# before = datetime.now()
 		progressing_jaccard_on_kmers(seq1.get_data(), seq2.get_data(), 10, stdout_output)
+	# after = datetime.now()
+	# duration = after - before
+	# print('durata totale: ', duration.microseconds)
 
 	elif action == 2:
 		files = input_files()
