@@ -27,8 +27,8 @@ def print_kmers_from_fasta_to_file_number(index, fact_alg_of_choice):
 
 
 def main_manual():
-
-	for index in range(1, 11):
+	for index in range(1, 1553):
+		print("Factorizing FASTA file: " + str(index))
 		print_kmers_from_fasta_to_file_number(index, 'cfl')
 		print_kmers_from_fasta_to_file_number(index, 'icfl')
 
